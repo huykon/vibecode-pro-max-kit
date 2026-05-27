@@ -1,28 +1,81 @@
 ---
 name: vc-setup
-description: Scaffold and populate the complete Claude Code + Codex agent harness into a new project. Detects project properties, scaffolds the process/ directory, performs comprehensive repo study to populate context with real content, and validates the result.
+description: Set up the complete agent harness in any project. Handles everything automatically — clones the kit, installs files safely (merges with existing configs), studies your codebase, populates context, and validates.
 metadata:
   author: vibecode
-  version: "3.0.0"
+  version: "3.1.0"
 ---
 
 # VibeCo Agent Harness Setup
 
-Use this skill after copying `.claude/`, `.codex/`, `.agents/`, and `AGENTS.md` from a harness-equipped repo into a new project. The skill guides a 4-phase workflow to detect the target project, scaffold the `process/` directory with seed files, study the codebase to populate context with real content, and validate the result.
+Set up the complete agent development harness in any project. Works on fresh projects and existing projects with pre-existing `.claude/` configs.
+
+The skill handles everything: fetch the harness, install files safely, detect the project, scaffold process directories, study the codebase to populate context with real content, and validate the result.
 
 CLAUDE.md and AGENTS.md are managed protocol files (orchestrator, RIPER-5 methodology, routing). They contain zero project-specific content and should NOT be adapted. Project-specific information lives in `process/context/all-context.md`, which is populated during the STUDY phase.
 
 ## Prerequisites
 
-Before running this skill:
-
-1. The target repo must have `.claude/`, `.codex/`, `.agents/`, and `AGENTS.md` copied from the harness source.
-2. The `.agents/skills` symlink should point to `../.claude/skills`.
-3. The target repo should have a `package.json` (or equivalent project manifest).
+- The target repo should have a `package.json` (or equivalent project manifest).
+- That's it. The skill handles the rest.
 
 ## Workflow
 
 Read `references/vc-setup.md` for detailed phase instructions, detection heuristics, parallel subagent delegation strategy, and validation checks.
+
+### Phase 0: BOOTSTRAP
+
+Fetch harness files and install them safely into the project. This phase is automatic — it runs first whenever the harness files are not yet present.
+
+**Skip condition:** If `.claude/agents/` and `.claude/skills/` already exist with the expected file counts (12+ agents, 20+ skills), skip Phase 0 entirely and proceed to Phase 1 DETECT.
+
+1. **Clone the kit repo:**
+   ```bash
+   TMPDIR="/tmp/vc-setup-$(date +%s)"
+   git clone --depth 1 https://github.com/withkynam/vibecode-pro-max-kit.git "$TMPDIR"
+   ```
+   If clone fails: print error, suggest checking network/auth, stop.
+
+2. **Scan for existing harness files** in the current project. Classify each target:
+
+   | Target | If missing | If exists |
+   |--------|-----------|-----------|
+   | `.claude/agents/` | Copy from kit | **Merge**: copy only missing agent files, skip existing |
+   | `.claude/skills/` | Copy from kit | **Merge**: copy only missing skill dirs, skip existing |
+   | `.claude/hooks/` | Copy from kit | **Merge**: copy only missing hooks, skip existing |
+   | `.claude/settings.json` | Copy from kit | **Preserve existing** (user has custom hook config) |
+   | `.codex/agents/` | Copy from kit | **Merge**: copy only missing files |
+   | `.codex/hooks/` | Copy from kit | **Merge**: copy only missing files |
+   | `.codex/hooks.json` | Copy from kit | **Preserve existing** |
+   | `.codex/config.toml` | Copy from kit | **Preserve existing** |
+   | `CLAUDE.md` | Copy from kit | **Backup** to `CLAUDE.md.pre-vibecode`, then install kit version. Tell user: "Your original CLAUDE.md was backed up. Move any custom instructions to process/context/all-context.md." |
+   | `AGENTS.md` | Copy from kit | **Backup** to `AGENTS.md.pre-vibecode`, then install kit version |
+   | `process/_seeds/` | Copy from kit | **Overwrite** (seeds are managed reference) |
+   | `process/development-protocols/` | Copy from kit | **Overwrite** (managed system files) |
+   | `process/context/` | Skip (created in SCAFFOLD) | **Preserve** (user content) |
+   | `process/features/` | Skip (created in SCAFFOLD) | **Preserve** (user content) |
+   | `process/general-plans/` | Skip (created in SCAFFOLD) | **Preserve** (user content) |
+
+3. **Create symlinks:**
+   - `.agents/skills -> ../.claude/skills` (create `.agents/` dir if missing)
+   - If symlink already exists and points correctly: skip
+
+4. **Copy vc-manifest.json** from kit (needed for future vc-update).
+
+5. **Write `.vc-version`** with the kit's manifest version.
+
+6. **Clean up:** Remove `$TMPDIR`.
+
+7. **Print bootstrap summary:**
+   ```
+   vc-setup bootstrap complete:
+     Installed: 12 agents, 32 skills, 7 hooks, 6 protocols, 17 seeds
+     Preserved: .claude/settings.json (existing), 3 custom hooks
+     Backed up: CLAUDE.md → CLAUDE.md.pre-vibecode
+     Symlink: .agents/skills → ../.claude/skills
+
+   Proceeding to DETECT...
+   ```
 
 ### Phase 1: DETECT
 

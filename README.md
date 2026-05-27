@@ -22,30 +22,42 @@ living project knowledge, and autonomous agent orchestration.
 
 ---
 
-## Install (one command)
+## Install
 
-**New project:**
+### New project (cleanest path)
 
 ```bash
 npx degit withkynam/vibecode-pro-max-kit my-project
-cd my-project && git init
+cd my-project && git init && claude
 ```
 
-**Existing project:**
+Then tell Claude: **"Run vc-setup"**. It auto-detects your project, scaffolds directories, studies your codebase, and populates context. Done.
 
-```bash
-npx degit withkynam/vibecode-pro-max-kit /tmp/vc-kit
-cp -R /tmp/vc-kit/{.claude,.codex,.agents,CLAUDE.md,AGENTS.md,process} .
-rm -rf /tmp/vc-kit
-```
+### Existing project (safe merge)
 
-**Already installed? Update anytime:**
+Open Claude Code in your project and say:
 
 ```
-Run the vc-update skill
+Run vc-setup to install the vibecode harness
 ```
 
-> Shows a dry-run diff, waits for your OK, then applies. Your project files are never touched.
+That's it. vc-setup handles everything:
+- Clones the kit to a temp directory
+- **Merges safely** — preserves your existing `.claude/settings.json`, hooks, and configs
+- Backs up your `CLAUDE.md` if you have one (as `CLAUDE.md.pre-vibecode`)
+- Installs agents, skills, hooks, protocols, and seed templates
+- Runs the full DETECT → SCAFFOLD → STUDY → VALIDATE pipeline
+- Studies your codebase and populates `process/context/all-context.md` with real content
+
+Your existing files are never destroyed. The skill knows the difference between "missing" (install) and "exists" (preserve or merge).
+
+### Already installed? Update anytime
+
+```
+Run vc-update
+```
+
+> Shows a dry-run diff of what changed, waits for your OK, then applies. Your project-specific files are never touched.
 
 ---
 
