@@ -3,7 +3,7 @@ name: vc:update
 description: Pull latest agent harness improvements from the remote kit repository. Shows a dry-run diff summary, waits for confirmation, then applies updates.
 metadata:
   author: vibecode
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # vc-update
@@ -31,7 +31,7 @@ Run `git status --porcelain` in the project root.
 
 Read the file `.vc-version` in the project root.
 
-- If it exists: store its contents as `currentVersion` (a semver string like `1.0.0`).
+- If it exists: store its contents as `currentVersion` (a semver string like `2.0.4`).
 - If it does not exist: set `currentVersion` to `"0.0.0"` (treat as first update).
 
 ### Step 3: Clone Remote Repository
@@ -46,76 +46,55 @@ If the clone fails (network error, auth error, repo not found):
 - Clean up the temp directory if it was partially created.
 - **Stop.** Do not proceed.
 
-### Step 4: Read Remote Manifest
+### Step 4: Resolve Remote Manifest
 
-Read and parse `vc-manifest.json` from the cloned repo at `$TMPDIR/vc-manifest.json`.
+Run the resolver script from the cloned repo:
 
-If the file is missing or contains invalid JSON:
-- Print a parse error message.
-- Remove `$TMPDIR`.
-- **Stop.** Do not proceed.
+```bash
+node "$TMPDIR/resolve-manifest.mjs" --root "$TMPDIR" --json
+```
 
-Extract these fields:
-- `version` (string) -- the remote version
-- `managed` (array of strings) -- individual managed file paths
-- `managedDirs` (array of strings) -- managed directory paths
-- `seedsDir` (string) -- path to seeds directory (typically `process/_seeds/`)
+Parse the JSON output to extract:
+- `files` (string[]) -- resolved managed file paths
+- `merge` (string[]) -- files where user customizations are preserved (not overwritten)
+- `copyIfMissing` (string[]) -- files only installed if they don't already exist locally
+- `strip` (string[]) -- files needing content stripping (informational)
 - `symlinks` (object) -- symlink path -> target mappings
-- `deletions` (array of strings) -- files to delete
+
+Extract the remote version from the manifest:
+```bash
+node -e "console.log(JSON.parse(require('fs').readFileSync('$TMPDIR/vc-manifest.json','utf8')).version)"
+```
+
+**Legacy fallback:** If `resolve-manifest.mjs` does not exist in the remote (very old kit version), fall back to reading `vc-manifest.json` directly and using the old `managed`/`managedDirs`/`seedsDir` fields for file resolution.
 
 ### Step 5: Compare Versions
 
-Compare `version` from the manifest against `currentVersion`.
+Compare the remote manifest `version` against `currentVersion`.
 
 - If they are equal: report **"Already up to date (vX.Y.Z)"** and clean up `$TMPDIR`. **Stop.**
 - If remote is newer (or currentVersion is `0.0.0`): continue to diff.
 
-### Step 6: Diff Managed Files
+### Step 6: Read Local Snapshot and Compute Diff
 
-For each path in the `managed` array:
+**Read `.vc-installed-files`** from the project root (if it exists). This file contains one file path per line -- the list of files installed by the last update.
 
-1. Check if the file exists locally at `{projectRoot}/{path}`.
-2. If it exists: run `diff` between `$TMPDIR/{path}` and `{projectRoot}/{path}`.
-   - If identical: mark as **unchanged**.
-   - If different: mark as **modified**. Note the number of lines changed.
-3. If it does not exist locally: mark as **new**.
+**If `.vc-installed-files` does NOT exist** (first update with new system):
+1. Build a synthetic snapshot by scanning the user project for files that exist AND match the remote `files` list.
+2. Also check for legacy `deletions` from the v2.0.4 era -- the resolver embeds these as `legacyDeletions` in legacy mode. For any path in the legacy deletions list that still exists locally, mark it for deletion.
+3. Write this synthetic snapshot to `.vc-installed-files` for future updates.
 
-Collect results into a summary list.
+**Compute the diff** using three lists: remote `files`, local snapshot, and local filesystem:
 
-### Step 7: Diff Managed Directories
+- **Additions:** Files in remote `files` but NOT in local snapshot (new files to install).
+- **Removals:** Files in local snapshot but NOT in remote `files` (files removed from kit -- should be deleted locally).
+- **Modifications:** Files in both lists -- compare content via `diff` between `$TMPDIR/{path}` and `{projectRoot}/{path}`.
+  - If identical: **unchanged**.
+  - If different: **modified** (note line count changes).
+- **Merge files:** Files in the `merge` list that have local changes. Show the diff but note they will NOT be overwritten. The user must manually reconcile.
+- **Copy-if-missing files:** Files in the `copyIfMissing` list that already exist locally. Show the diff but note they will NOT be overwritten.
 
-For each directory path in the `managedDirs` array:
-
-1. List all files recursively in `$TMPDIR/{dirPath}/`.
-2. List all files recursively in `{projectRoot}/{dirPath}/` (if it exists).
-3. Compare the two file lists:
-   - Files in remote but not local: mark as **added**.
-   - Files in local but not remote: mark as **will remove** (rsync-style sync removes extras).
-   - Files in both: diff content. Mark as **modified** or **unchanged**.
-
-Collect results into a summary list.
-
-### Step 8: Diff Seeds Directory
-
-Compare the `process/_seeds/` directory between remote and local:
-
-1. List all files recursively in `$TMPDIR/process/_seeds/`.
-2. List all files recursively in `{projectRoot}/process/_seeds/` (if it exists).
-3. Compare:
-   - Files in remote but not local: mark as **added**.
-   - Files in local but not remote: mark as **will remove**.
-   - Files in both: diff content. Mark as **modified** or **unchanged**.
-
-Seeds are **managed reference material** -- they are overwritten entirely on update. Real working files outside `_seeds/` (such as `process/context/`, `process/features/`, `process/general-plans/`) are **NEVER touched**.
-
-### Step 9: Check Deletions
-
-For each path in the `deletions` array:
-
-- If the file exists locally: mark as **will delete**.
-- If the file does not exist: mark as **already removed**.
-
-### Step 10: Check Symlinks
+### Step 7: Check Symlinks
 
 For each entry in the `symlinks` object (key = symlink path, value = target):
 
@@ -123,44 +102,34 @@ For each entry in the `symlinks` object (key = symlink path, value = target):
 - If the symlink is missing or points to a different target: mark as **will fix**.
 - If a real directory exists at the symlink path (not a symlink): mark as **will replace dir with symlink**.
 
-### Step 11: Print Dry-Run Summary
+### Step 8: Print Dry-Run Summary
 
-Print a summary table with all collected results. Format:
+Print a summary with all collected results. Format:
 
 ```
 vc-update dry run: v{currentVersion} -> v{remoteVersion}
 
-MANAGED FILES:
-  [modified]  .claude/agents/execute-agent.md  (+12 -3)
+FILES:
+  [modified]  .claude/agents/vc-execute-agent.md  (+12 -3)
   [new]       .claude/hooks/lib/new-util.cjs
-  [unchanged] .claude/agents/debugger.md
+  [removed]   .claude/skills/deprecated-skill/SKILL.md
+  [unchanged] .claude/agents/vc-debugger.md
   ...
 
-MANAGED DIRECTORIES:
-  .claude/skills/vc-scout/
-    [modified]  SKILL.md  (+5 -2)
-    [added]     references/new-ref.md
-  .claude/skills/vc-update/
-    [unchanged] (no changes)
-  ...
+MERGE (preserved, manual review needed):
+  [differs]   .claude/settings.json  (+2 -1)
 
-SEEDS (process/_seeds/):
-  [modified]  context/all-context.md.seed  (+8 -1)
-  [added]     features/_new-template/_GUIDE.md.seed
-  ...
-
-DELETIONS:
-  [will delete]    .claude/skills/deprecated-skill/SKILL.md
-  [already removed] .old-config
+COPY-IF-MISSING (skipped, already present):
+  [skipped]   process/context/planning/example-simple-prd.md
 
 SYMLINKS:
   [ok]        .agents/skills -> ../.claude/skills
   [will fix]  .codex/hooks -> ../.claude/hooks
 
-Summary: 5 modified, 2 new, 1 deletion, 1 symlink fix, 45 unchanged
+Summary: 5 modified, 2 new, 1 removal, 1 merge skipped, 45 unchanged
 ```
 
-### Step 12: Wait for Confirmation
+### Step 9: Wait for Confirmation
 
 **STOP HERE.** Tell the user:
 
@@ -173,40 +142,36 @@ If the user aborts:
 - Print "Update cancelled. No changes made."
 - **Stop.**
 
-### Step 13: Apply Changes
+### Step 10: Apply Changes
 
 On user confirmation, apply in this order:
 
-1. **Managed files**: For each file in `managed` array, copy from `$TMPDIR/{path}` to `{projectRoot}/{path}`. Create parent directories as needed. Overwrite existing files.
+1. **Additions and modifications**: For each file in the remote `files` list:
+   - Skip if file is in `merge` list AND exists locally (preserve user version).
+   - Skip if file is in `copyIfMissing` list AND exists locally (preserve user version).
+   - Otherwise: `mkdir -p` the parent directory, copy from `$TMPDIR/{path}` to `{projectRoot}/{path}`.
 
-2. **Managed directories**: For each dir in `managedDirs` array:
-   - Delete the local directory entirely: `rm -rf {projectRoot}/{dirPath}`
-   - Copy the remote directory: `cp -R $TMPDIR/{dirPath} {projectRoot}/{dirPath}`
-   - This is rsync-style: remote is the source of truth.
+2. **Removals**: For each file in the local snapshot but NOT in the remote `files` list:
+   - Delete the local file.
+   - If the parent directory is now empty, remove it too.
 
-3. **Seeds**: Overwrite the entire local `process/_seeds/` directory:
-   - `rm -rf {projectRoot}/process/_seeds/`
-   - `cp -R $TMPDIR/process/_seeds/ {projectRoot}/process/_seeds/`
-
-4. **Deletions**: For each path in `deletions` array:
-   - If the file exists locally: delete it.
-   - If it is a directory: `rm -rf`.
-
-5. **Symlinks**: For each entry in `symlinks`:
+3. **Symlinks**: For each entry in `symlinks`:
    - If a real directory exists at the path: `rm -rf` it first.
    - If a wrong symlink exists: `rm` it first.
    - Create the symlink: `ln -s {target} {path}`
 
-6. **Write version**: Write the manifest version string to `.vc-version` in the project root.
+4. **Write snapshot**: Write the remote `files` list (sorted, one per line) to `.vc-installed-files`.
 
-7. **Clean up**: Remove `$TMPDIR`.
+5. **Write version**: Write the manifest version string to `.vc-version`.
+
+6. **Clean up**: Remove `$TMPDIR`.
 
 If any copy/delete fails with a permission error:
 - Print which file failed and the error.
 - Suggest running `chmod` on the affected path or checking file ownership.
 - Continue with remaining files (do not abort the entire update).
 
-### Step 14: Print Applied Changes Summary
+### Step 11: Print Applied Changes Summary
 
 ```
 vc-update complete: v{currentVersion} -> v{remoteVersion}
@@ -214,22 +179,24 @@ vc-update complete: v{currentVersion} -> v{remoteVersion}
 Applied:
   5 files modified
   2 files added
-  1 file deleted
+  1 file removed
   1 symlink fixed
-  Seeds directory updated
+  1 merge file preserved (review .claude/settings.json manually)
 
+Snapshot written to .vc-installed-files
 Version written to .vc-version: {remoteVersion}
 ```
 
 ## Rules
 
-- `process/_seeds/` is managed reference -- overwrite entirely on update.
+- `process/_seeds/` is managed reference -- overwritten entirely on update (included in the resolved file list).
 - Real working files outside `_seeds/` (`process/context/`, `process/features/`, `process/general-plans/`) are **NEVER** touched by vc-update.
 - Always show the dry-run diff before applying. Never apply without user confirmation.
 - Clean up the temp clone directory even on error or abort.
 - If `.vc-version` is missing, treat as version `0.0.0` (first update, apply everything).
-- Managed directories use rsync-style sync: the remote version completely replaces the local version.
-- Individual managed files are overwritten in place.
+- Files in the `merge` list are never overwritten if they exist locally. Show the diff for manual review.
+- Files in the `copyIfMissing` list are only installed if they don't already exist locally.
+- Removals are detected by comparing the local `.vc-installed-files` snapshot against the new resolved file list.
 
 ## Reference
 

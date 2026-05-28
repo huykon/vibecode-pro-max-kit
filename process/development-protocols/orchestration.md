@@ -123,6 +123,20 @@ Controller rules for phase programs:
 5. if the original program reaches a narrower scoped goal than the user's larger vision, split the
    remaining work into follow-up feature folders instead of stretching one project forever
 
+## Parallel Fan-Out Checkpoints
+
+At these phase transitions, consult `process/development-protocols/parallel-fan-out.md`:
+
+1. After initial research identifies multiple directions
+2. After innovate surfaces 4+ architectural approaches
+3. After plan creation, before EXECUTE approval
+4. After phase-program plan set creation
+5. After non-trivial EXECUTE completion, before closeout
+
+The fan-out protocol uses the same signal-count scoring as drift scoring. It recommends
+parallel subagents when coverage benefit justifies the token cost, and escalates to vc-team
+only when agents need inter-communication.
+
 ## Approval Gates Still Apply in Parallel
 
 - `ENTER EXECUTE MODE` remains mandatory before substantial implementation work, even when `team` or FAST mode is used.
@@ -151,6 +165,9 @@ Required closeout packet:
    - keep current plan active for more validation
    - return to PLAN
    - move to the next explicit phase/follow-up after cleanup
+7. commit-checkpoint recommendation
+   - if the selected phase is validated and execution changes are present, explicitly recommend whether to invoke `vc-git-manager` before UPDATE PROCESS
+   - if only process/plan/context artifacts remain, say that the commit checkpoint belongs after UPDATE PROCESS instead of before it
 
 Required closeout choices:
 
@@ -164,6 +181,7 @@ Rules:
 - Do not auto-transition into UPDATE PROCESS.
 - Do not auto-archive a plan without a user-visible action.
 - Do automatically recommend the next valid state when it is clear from the selected plan and latest verification.
+- Do explicitly recommend a commit checkpoint when a selected phase is well-tested and validated.
 - If cleanup/context capture is the only remaining safe action, say that directly instead of ending with a generic summary.
 - If cleanup was skipped and active-plan debt accumulates, recommend `vc-audit-plans` as a maintenance follow-up.
 
@@ -192,6 +210,8 @@ Examples:
 
 - If the selected plan is verified and the next phase is explicit, recommend:
   `ENTER UPDATE PROCESS MODE, then continue with process/features/.../next-phase_PLAN_...md`
+- If the selected plan is verified and implementation changes are still uncommitted, recommend:
+  `Invoke vc-git-manager for a logical execution commit, then ENTER UPDATE PROCESS MODE for plan/context reconciliation`
 - If the selected plan is code-complete but still testing, recommend:
   `Keep the plan active and continue validation on the same selected plan`
 - If the selected plan exposed follow-up work outside its boundary, recommend:

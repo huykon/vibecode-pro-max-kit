@@ -143,6 +143,21 @@ Allowed next valid states:
 - return to PLAN because implementation and plan reality diverged
 - move to the next explicit phase or follow-up plan after cleanup is complete
 
+For validated phase work, also classify the commit checkpoint explicitly:
+
+- **Execution commit recommended before UPDATE PROCESS**
+  - implementation or test changes from the selected phase are well-tested and ready for a logical code/test commit
+  - later UPDATE PROCESS edits are expected to touch `process/`, `.claude/`, `.codex/`, or `AGENTS.md` separately
+- **Process commit belongs after UPDATE PROCESS**
+  - the remaining changes are primarily plan, report, context, or harness-governance artifacts
+  - splitting execution and process commits will keep the history easier to review and resume
+
+When a selected phase exposes a concrete missing downstream lane, UPDATE PROCESS should create or route the follow-up artifact explicitly:
+
+- create a new direct phase plan when the next lane is now well-defined and belongs in the same phase program
+- create a new follow-up feature folder or backlog artifact when the new lane is out of scope for the current feature goal
+- update the umbrella or parent plan so the next plan path is discoverable without manual chat context
+
 When the next phase is already known from an umbrella plan or program sequence, say so explicitly.
 This reduces handoff drift and avoids reopening solved routing questions.
 

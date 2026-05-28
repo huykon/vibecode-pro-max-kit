@@ -24,6 +24,15 @@ echo "  vibecode-pro-max-kit installer"
 echo "  ─────────────────────────────────"
 echo ""
 
+# ══════════════════════════════════════════════════════
+# Preflight: Node.js required
+# ══════════════════════════════════════════════════════
+if ! command -v node &>/dev/null; then
+  echo "  Error: Node.js is required but not found in PATH."
+  echo "  Install Node.js >= 22 and try again."
+  exit 1
+fi
+
 # Clone kit to temp
 echo "  Fetching kit..."
 git clone --depth 1 --quiet "$REPO" "$TMPDIR"
@@ -32,6 +41,33 @@ git clone --depth 1 --quiet "$REPO" "$TMPDIR"
 VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$TMPDIR/vc-manifest.json','utf8')).version)" 2>/dev/null || echo "unknown")
 echo "  Kit version: $VERSION"
 echo ""
+
+# ══════════════════════════════════════════════════════
+# Resolve manifest to get file list + metadata
+# ══════════════════════════════════════════════════════
+MANIFEST_JSON=$(node "$TMPDIR/resolve-manifest.mjs" --root "$TMPDIR" --json 2>/dev/null)
+if [ -z "$MANIFEST_JSON" ]; then
+  echo "  Error: Failed to resolve manifest. Check Node.js version (>= 22 required)."
+  exit 1
+fi
+
+# Extract file list, merge list, copyIfMissing list, and symlinks from JSON
+FILES=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+  d.files.forEach(f => console.log(f));
+")
+MERGE_FILES=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+  d.merge.forEach(f => console.log(f));
+")
+COPY_IF_MISSING=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+  d.copyIfMissing.forEach(f => console.log(f));
+")
+SYMLINKS_JSON=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+  for (const [k,v] of Object.entries(d.symlinks)) console.log(k + '|' + v);
+")
 
 # ══════════════════════════════════════════════════════
 # Backup existing setup (if any)
@@ -55,78 +91,68 @@ if [ -d ".claude" ] || [ -d ".codex" ] || [ -d ".agents" ] || [ -f "CLAUDE.md" ]
   echo -e "    Backup at: ${CYAN}$BACKUP_DIR/${NC}"
   echo ""
 
-  # Save user config before wiping
-  USER_SETTINGS=""
-  if [ -f ".claude/settings.json" ]; then
-    USER_SETTINGS=$(cat .claude/settings.json)
-  fi
-
   # Clean slate — remove old agent tooling dirs
   rm -rf .claude .codex .agents
 fi
 
 # ══════════════════════════════════════════════════════
-# Install kit — clean copy
+# Install kit — resolver-driven copy
 # ══════════════════════════════════════════════════════
-echo "  Installing agents..."
-mkdir -p .claude/agents .codex/agents
-cp -R "$TMPDIR/.claude/agents/"* .claude/agents/
-cp -R "$TMPDIR/.codex/agents/"* .codex/agents/
+INSTALLED_COUNT=0
+SKIPPED_MERGE=0
+SKIPPED_COPY_IF_MISSING=0
 
-echo "  Installing skills..."
-mkdir -p .claude/skills
-cp -R "$TMPDIR/.claude/skills/"* .claude/skills/
+echo "  Installing files..."
 
-echo "  Installing hooks..."
-mkdir -p .claude/hooks .codex/hooks
-cp -R "$TMPDIR/.claude/hooks/"* .claude/hooks/
-cp -R "$TMPDIR/.codex/hooks/"* .codex/hooks/
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
 
-echo "  Installing configs..."
-# Settings: restore user's if they had one, otherwise use kit default
-if [ -n "${USER_SETTINGS:-}" ]; then
-  echo "$USER_SETTINGS" > .claude/settings.json
-  echo -e "    ${CYAN}Restored${NC} .claude/settings.json (your config)"
-else
-  cp "$TMPDIR/.claude/settings.json" .claude/settings.json
-fi
-cp "$TMPDIR/.codex/hooks.json" .codex/hooks.json
-cp "$TMPDIR/.codex/config.toml" .codex/config.toml
+  # Check if this file is in the merge list AND exists locally
+  IS_MERGE=false
+  while IFS= read -r mf; do
+    [ "$file" = "$mf" ] && IS_MERGE=true && break
+  done <<< "$MERGE_FILES"
 
-echo "  Installing protocol files..."
-cp "$TMPDIR/CLAUDE.md" CLAUDE.md
-cp "$TMPDIR/AGENTS.md" AGENTS.md
+  if [ "$IS_MERGE" = true ] && [ -f "$file" ]; then
+    SKIPPED_MERGE=$((SKIPPED_MERGE + 1))
+    continue
+  fi
 
-# ══════════════════════════════════════════════════════
-# Process directory — managed parts only, preserve user content
-# ══════════════════════════════════════════════════════
-echo "  Installing process directory..."
+  # Check if this file is in the copyIfMissing list AND exists locally
+  IS_COPY_IF_MISSING=false
+  while IFS= read -r cim; do
+    [ "$file" = "$cim" ] && IS_COPY_IF_MISSING=true && break
+  done <<< "$COPY_IF_MISSING"
 
-# Seeds: always overwrite (managed reference material)
-rm -rf process/_seeds 2>/dev/null
-mkdir -p process
-cp -R "$TMPDIR/process/_seeds" process/
+  if [ "$IS_COPY_IF_MISSING" = true ] && [ -f "$file" ]; then
+    SKIPPED_COPY_IF_MISSING=$((SKIPPED_COPY_IF_MISSING + 1))
+    continue
+  fi
 
-# Development protocols: always overwrite (managed system files)
-rm -rf process/development-protocols 2>/dev/null
-cp -R "$TMPDIR/process/development-protocols" process/
-
-# Example PRDs: copy if missing
-mkdir -p process/context/planning
-[ ! -f "process/context/planning/example-simple-prd.md" ] && cp "$TMPDIR/process/context/planning/example-simple-prd.md" "process/context/planning/example-simple-prd.md"
-[ ! -f "process/context/planning/example-complex-prd.md" ] && cp "$TMPDIR/process/context/planning/example-complex-prd.md" "process/context/planning/example-complex-prd.md"
+  # Create parent directory and copy
+  mkdir -p "$(dirname "$file")"
+  cp "$TMPDIR/$file" "$file"
+  INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
+done <<< "$FILES"
 
 # ══════════════════════════════════════════════════════
 # Symlinks
 # ══════════════════════════════════════════════════════
 echo "  Setting up symlinks..."
-mkdir -p .agents
-ln -sf ../.claude/skills .agents/skills
+while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  LINK_PATH="${line%%|*}"
+  LINK_TARGET="${line##*|}"
+  mkdir -p "$(dirname "$LINK_PATH")"
+  # Remove existing (wrong symlink or real dir)
+  [ -e "$LINK_PATH" ] || [ -L "$LINK_PATH" ] && rm -rf "$LINK_PATH"
+  ln -sf "$LINK_TARGET" "$LINK_PATH"
+done <<< "$SYMLINKS_JSON"
 
 # ══════════════════════════════════════════════════════
-# Manifest + version
+# Write snapshot + version
 # ══════════════════════════════════════════════════════
-cp "$TMPDIR/vc-manifest.json" vc-manifest.json
+echo "$FILES" | sort > .vc-installed-files
 echo "$VERSION" > .vc-version
 
 cleanup
@@ -144,8 +170,13 @@ echo ""
 echo -e "    ${CYAN}Agents${NC}:     $AGENT_COUNT (Claude Code + Codex)"
 echo -e "    ${CYAN}Skills${NC}:     $SKILL_COUNT"
 echo -e "    ${CYAN}Hooks${NC}:      $HOOK_COUNT"
-echo -e "    ${CYAN}Protocols${NC}:  6 development protocols"
-echo -e "    ${CYAN}Seeds${NC}:      $(find process/_seeds -type f 2>/dev/null | wc -l | tr -d ' ') template files"
+echo -e "    ${CYAN}Files${NC}:      $INSTALLED_COUNT installed"
+if [ "$SKIPPED_MERGE" -gt 0 ]; then
+  echo -e "    ${CYAN}Merge${NC}:      $SKIPPED_MERGE preserved (user config)"
+fi
+if [ "$SKIPPED_COPY_IF_MISSING" -gt 0 ]; then
+  echo -e "    ${CYAN}Existing${NC}:   $SKIPPED_COPY_IF_MISSING skipped (already present)"
+fi
 
 if [ "$HAS_EXISTING" = true ]; then
   echo ""

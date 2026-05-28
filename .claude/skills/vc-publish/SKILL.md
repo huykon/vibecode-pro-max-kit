@@ -3,7 +3,7 @@ name: vc:publish
 description: Push agent harness improvements from the current development repo to the remote kit repository. Use when you want to publish local harness changes back to the shared kit. Diffs managed files, shows what changed, bumps version, and pushes.
 metadata:
   author: vibecode
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # vc-publish
@@ -41,56 +41,53 @@ If this file is missing, ask the user for the kit repo checkout path and offer t
 ### Step 2: Read Manifest
 
 5. Read `vc-manifest.json` from the kit repo checkout.
-6. Extract current version, `managed` array, `managedDirs` array, `seedsDir`, `symlinks`, and `deletions`.
+6. Extract the current `version`.
 
-### Step 3: Diff Managed Files
+### Step 3: Resolve Both File Sets
 
-7. For each file in the `managed` array:
-   - If file exists in both repos: diff current repo copy vs kit repo copy. Classify as **modified** or **unchanged**.
-   - If file exists in current repo but NOT in kit repo: classify as **new**.
-   - If file exists in kit repo but NOT in current repo: classify as **removed**.
+7. Run the resolver against the **kit repo** to get the kit file list:
+   ```bash
+   node <kitRepoPath>/resolve-manifest.mjs --root <kitRepoPath> --json
+   ```
+   Extract `files` (kit managed files) and `kitOnly` (kit-exclusive files).
 
-### Step 4: Diff Managed Directories
+8. Run the resolver against the **dev repo** to get the dev file list:
+   ```bash
+   node <kitRepoPath>/resolve-manifest.mjs --root <devRepoRoot> --json
+   ```
+   Extract `files` (dev managed files).
 
-8. For each directory in `managedDirs`:
-   - List files in both current repo and kit repo versions.
-   - Compare file lists and content.
-   - Classify each file as **added**, **removed**, **modified**, or **unchanged**.
+   **Note:** The resolver uses the manifest from the `--root` directory. Since the dev repo has a copy of `vc-manifest.json`, the resolver works against it. If the dev repo doesn't have the resolver script, copy it from the kit repo first or use the kit repo's copy with `--root` pointing to the dev repo.
 
-### Step 5: Diff Seeds
+### Step 4: Compute Diff
 
-9. Compare `process/_seeds/` in the current repo against `process/_seeds/` in the kit repo.
-   - Classify each seed file as **modified**, **unchanged**, **new**, or **removed**.
+9. Compare the two resolved file sets:
+   - Files in dev `files` but NOT in kit `files`: **new** (will be added to kit).
+   - Files in kit `files` but NOT in dev `files`: **removed** (will be removed from kit).
+   - Files in both: compare content via `diff`. Classify as **modified** or **unchanged**.
+   - `strip` files (CLAUDE.md, AGENTS.md): always flag for content review regardless of diff status.
 
-### Step 6: Print Diff Summary
+### Step 5: Print Diff Summary
 
 10. Print a summary table:
 
 ```
-vc-publish diff: current repo -> kit repo (v1.2.3)
+vc-publish diff: current repo -> kit repo (v2.1.0)
 ================================================
 
-Managed files:
-  Modified:  5
-  New:       1
-  Removed:   0
-  Unchanged: 38
+FILES:
+  [modified]  .claude/agents/vc-execute-agent.md  (+8 -3)
+  [modified]  .claude/hooks/lib/scout-checker.cjs  (+2 -1)
+  [new]       .claude/skills/vc-new-skill/SKILL.md
+  [strip]     CLAUDE.md (needs content review)
+  [strip]     AGENTS.md (needs content review)
+  [unchanged] .claude/settings.json
+  ... (350 more unchanged)
 
-Managed directories:
-  .claude/skills/vc-scout     2 modified, 1 added
-  .claude/skills/vc-setup     unchanged
-  ...
-
-Seeds (process/_seeds/):
-  Modified:  2
-  New:       0
-  Removed:   0
-  Unchanged: 12
-
-Total changes: 8 files across 3 categories
+Total changes: 4 files modified, 1 new, 0 removed
 ```
 
-### Step 7: STOP -- Confirm Publish
+### Step 6: STOP -- Confirm Publish
 
 11. **STOP** and ask the user:
     - Confirm they want to publish these changes.
@@ -98,26 +95,33 @@ Total changes: 8 files across 3 categories
     - Or abort.
 
 Version bump semantics:
-- **Patch** (1.2.3 -> 1.2.4): hook fixes, skill doc updates, minor agent prompt tweaks
-- **Minor** (1.2.3 -> 1.3.0): new skills, new agents, new development protocols
-- **Major** (1.2.3 -> 2.0.0): CLAUDE.md structure changes, manifest schema changes, breaking workflow changes
+- **Patch** (2.1.0 -> 2.1.1): hook fixes, skill doc updates, minor agent prompt tweaks
+- **Minor** (2.1.0 -> 2.2.0): new skills, new agents, new development protocols
+- **Major** (2.1.0 -> 3.0.0): CLAUDE.md structure changes, manifest schema changes, breaking workflow changes
 
-### Step 8: Apply Changes
+### Step 7: Apply Changes
 
 12. On confirm:
     - Copy all **modified** and **new** managed files from current repo to kit repo checkout.
-    - For CLAUDE.md and AGENTS.md: use the kit repo's existing harness-only versions as base. Apply only methodology/structural changes. Do NOT copy the current repo's project-specific versions directly. See the reference doc for content stripping rules.
-    - Sync each `managedDirs` directory: rsync-style replace (delete files in kit dir not present in current repo dir, copy all files from current repo dir).
-    - Sync `process/_seeds/` from current repo to kit repo (overwrite entirely).
-    - Handle **removed** managed files: if a file was removed from the managed list, add its path to the `deletions` array and delete from kit repo.
-    - Update `vc-manifest.json`:
-      - Bump `version` field per the chosen bump type.
-      - Update `managed` array if files were added or removed.
-      - Update `managedDirs` array if directories were added or removed.
-      - Update `deletions` array with any newly removed paths.
-    - Create symlinks if missing (`.agents/skills -> ../.claude/skills`, `.codex/hooks -> ../.claude/hooks`).
+    - For each **removed** file: delete it from the kit repo checkout.
+    - **CLAUDE.md and AGENTS.md stripping**: Do NOT copy the current repo's project-specific versions directly. Instead:
+      1. Read the current repo's CLAUDE.md/AGENTS.md.
+      2. Read the kit repo's existing harness-only version as base.
+      3. Apply only methodology/structural changes from the dev repo to the kit's harness-only version.
+      4. Strip all project-specific content:
+         - Technology stack details (frameworks, databases, versions)
+         - Feature list / "Current features" entries
+         - Project-specific context groups
+         - Hardcoded package manager (replace with generic)
+         - MCP server instructions (project-specific config)
+         - Project-specific routing rules
+         - Absolute paths (`/Users/...`)
+         - Product name references ("Flowser", "flowser-turborepo")
+      5. Verify the result is harness-only methodology with no project leaks.
+    - Update `vc-manifest.json`: bump `version` field per the chosen bump type. **No other manifest changes needed** -- glob patterns are stable, new files are automatically included.
+    - Create symlinks if missing (`.agents/skills -> ../.claude/skills`).
 
-### Step 9: Leak Detection
+### Step 8: Leak Detection
 
 13. Verify no project-specific content leaked into the kit repo:
 
@@ -134,7 +138,7 @@ grep -r "/Users/" .
     - Revert the changes in the kit repo (`git -C <kitRepoPath> checkout .`).
     - STOP and report the leak. Do NOT commit or push.
 
-### Step 10: Commit and Tag
+### Step 9: Commit and Tag
 
 15. In the kit repo:
 
@@ -145,7 +149,7 @@ git commit -m "Release vX.Y.Z"
 git tag vX.Y.Z
 ```
 
-### Step 11: Push
+### Step 10: Push
 
 16. Push to remote:
 
@@ -155,27 +159,33 @@ git push origin main && git push --tags
 
 17. If push fails (e.g., rejected, auth error), report the error. The commit and tag are preserved locally for retry.
 
-### Step 12: Print Summary
+### Step 11: Print Summary
 
 18. Print publish summary:
 
 ```
 vc-publish complete
 ===================
-Version:     v1.3.0 (was v1.2.3)
-Files changed: 8
-Remote:      git@github.com:withkynam/vibecode-pro-max-kit.git
-Tag:         v1.3.0
+Version:       v2.2.0 (was v2.1.0)
+Files changed: 4
+Remote:        git@github.com:withkynam/vibecode-pro-max-kit.git
+Tag:           v2.2.0
 ```
+
+## Key Changes from v1.0
+
+- **No manifest array maintenance.** The glob patterns in `include`/`exclude`/`kitOnly` are stable. Adding a new skill or agent requires zero manifest edits. The only manifest change at publish time is the version bump.
+- **Resolver-driven diffing.** Both repos are resolved through the same `resolve-manifest.mjs` script, ensuring consistent file sets.
+- **No `managed`/`managedDirs` arrays to update.** The old workflow of adding new files to these arrays is eliminated.
 
 ## Rules
 
 - **NEVER** copy project-specific files: `process/context/all-context.md` (with real content), `process/features/*`, `process/general-plans/*` (with real plans)
-- **ALWAYS** verify no project-specific content leaked before committing (Step 9)
-- **ALWAYS** show the diff summary before publishing (Step 6-7)
+- **ALWAYS** verify no project-specific content leaked before committing (Step 8)
+- **ALWAYS** show the diff summary before publishing (Step 5-6)
 - CLAUDE.md and AGENTS.md require special handling -- never copy the development repo's project-specific versions directly
 - Kit repo checkout path is stored in `.vc-publish-config` (add to `.gitignore`)
-- The `vc-manifest.json` in the kit repo is the source of truth for what files are managed
+- The only manifest edit at publish time is the version bump -- glob patterns are stable
 
 ## Reference
 

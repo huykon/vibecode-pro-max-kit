@@ -72,8 +72,10 @@ Location: [Where in file - section name or append location]
 - For phase programs, check ALL of the following:
   - Which phase plans are now `✅ VERIFIED`
   - Which phase plans remain truly blocked
+  - Whether the selected validated phase should trigger a commit checkpoint before broader follow-up work continues
   - Whether verified phase plans should be moved from `active/` to `completed/`
   - Whether future work belongs in the same feature folder or should be split into a new follow-up feature
+  - Whether execution revealed a concrete missing downstream lane that now needs a new direct phase plan file instead of a chat-only note
   - Whether reports/references still point at stale `active/` paths after archival
 - If the scoped project goal is complete but broader future work remains:
   - mark the umbrella/orchestration phase verified for the scoped goal
@@ -222,10 +224,13 @@ For each approved improvement:
   - current phase plan
   - downstream phase plans affected by new learnings
   - feature README/status file when one exists
+- If the selected phase is validated and execution changes are ready, recommend a commit checkpoint via `vc-git-manager` before wider follow-up work continues.
+- If UPDATE PROCESS itself changes only process artifacts, preserve that as a separate process-artifact commit checkpoint rather than silently merging it into the execution commit.
 - Archive verified phase plans from `active/` to `completed/` when the milestone is genuinely closed.
 - If one helper or sub-phase is no longer part of the foundation scope, move it to the correct
   follow-up feature's `references/`, `backlog/`, or `active/` folder instead of leaving it behind
   as a misleading active blocker.
+- If execution exposed a well-defined missing downstream lane, create the new phase plan or follow-up artifact in this mode and update the umbrella or parent plan so the next path is explicit.
 
 **Context Updates**:
 - Read `process/context/all-context.md` first to identify the owning root file or context group.

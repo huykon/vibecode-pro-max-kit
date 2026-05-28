@@ -17,6 +17,33 @@ Create this file in the project root to tell vc-publish where the kit repo check
 - If missing, the skill asks the user for the path interactively
 - Add `.vc-publish-config` to `.gitignore` -- it contains a local machine path
 
+## Resolver-Driven Diffing
+
+Both repos are resolved through the same `resolve-manifest.mjs` script:
+
+```bash
+# Kit repo file list
+node <kitRepoPath>/resolve-manifest.mjs --root <kitRepoPath> --json
+
+# Dev repo file list (uses same manifest patterns against dev repo tree)
+node <kitRepoPath>/resolve-manifest.mjs --root <devRepoRoot> --json
+```
+
+The `--json` output provides all metadata needed for diffing:
+
+```json
+{
+  "files": ["...sorted managed file paths..."],
+  "kitOnly": ["...sorted kit-exclusive file paths..."],
+  "merge": [".claude/settings.json"],
+  "copyIfMissing": ["process/context/planning/example-simple-prd.md"],
+  "strip": ["CLAUDE.md", "AGENTS.md"],
+  "symlinks": { ".agents/skills": "../.claude/skills" }
+}
+```
+
+**Key change from v1.0:** The publish step no longer needs to update `managed`/`managedDirs` arrays in the manifest. Glob patterns are stable -- new files are automatically included. The only manifest edit at publish time is the version bump.
+
 ## CLAUDE.md / AGENTS.md Content Stripping
 
 When publishing, CLAUDE.md and AGENTS.md must be harness-only.
@@ -62,18 +89,19 @@ Maintain harness-only CLAUDE.md and AGENTS.md directly in the kit repo as canoni
 | Kit repo path doesn't exist | Step 1 | Print error, stop |
 | Kit repo has no `vc-manifest.json` | Step 2 | Print "not a valid kit repo", stop |
 | Kit repo has uncommitted changes | Step 2 | Warn user, suggest stashing. Do not block. |
-| No changes to publish | Step 6 | Report "nothing to publish", stop |
-| Leak detection finds project content | Step 9 | Print matches, **stop before committing** |
-| Git push fails | Step 11 | Print error, suggest checking access. Commit/tag are local -- user can retry. |
-| Version tag already exists | Step 10 | Print error, suggest bumping to next version |
+| Resolver script missing or fails | Step 3 | Print error, suggest checking Node >= 22, stop |
+| No changes to publish | Step 5 | Report "nothing to publish", stop |
+| Leak detection finds project content | Step 8 | Print matches, **stop before committing** |
+| Git push fails | Step 10 | Print error, suggest checking access. Commit/tag are local -- user can retry. |
+| Version tag already exists | Step 9 | Print error, suggest bumping to next version |
 
 ## Version Bump Semantics
 
 | Bump | When | Examples |
 |------|------|---------|
-| **Patch** (1.0.0 -> 1.0.1) | Bug fixes, minor doc updates | Hook bugfix, skill doc clarification, prompt tweak |
-| **Minor** (1.0.0 -> 1.1.0) | New features, additive changes | New skill, new agent, new protocol, new seed template |
-| **Major** (1.0.0 -> 2.0.0) | Breaking changes | CLAUDE.md structure change, manifest schema change, removed skills |
+| **Patch** (2.1.0 -> 2.1.1) | Bug fixes, minor doc updates | Hook bugfix, skill doc clarification, prompt tweak |
+| **Minor** (2.1.0 -> 2.2.0) | New features, additive changes | New skill, new agent, new protocol, new seed template |
+| **Major** (2.1.0 -> 3.0.0) | Breaking changes | CLAUDE.md structure change, manifest schema change, removed skills |
 
 ## Leak Detection Patterns
 
@@ -98,47 +126,38 @@ If any match: print every match with file path and line number, ask user to fix,
 ## Diff Summary Output Format
 
 ```
-vc-publish diff: v1.0.0 -> v1.1.0 (minor)
+vc-publish diff: current repo -> kit repo (v2.1.0)
+================================================
 
-MANAGED FILES:
-  [modified]  .claude/agents/execute-agent.md  (+8 -3)
+FILES:
+  [modified]  .claude/agents/vc-execute-agent.md  (+8 -3)
   [modified]  .claude/hooks/lib/scout-checker.cjs  (+2 -1)
-  [unchanged] CLAUDE.md (harness-only version)
-  ... (35 more unchanged)
+  [new]       .claude/skills/vc-new-skill/SKILL.md
+  [new]       .claude/skills/vc-new-skill/references/new-skill.md
+  [strip]     CLAUDE.md (needs content review)
+  [strip]     AGENTS.md (needs content review)
+  [unchanged] .claude/settings.json
+  ... (350 more unchanged)
 
-MANAGED DIRECTORIES:
-  .claude/skills/new-skill/  [NEW DIRECTORY]
-    SKILL.md (45 lines)
-    references/new-skill.md (80 lines)
-  .claude/skills/vc-scout/
-    [modified]  SKILL.md  (+5 -2)
-  ... (28 more unchanged)
+Total changes: 4 modified, 2 new, 0 removed
 
-SEEDS (process/_seeds/):
-  [modified]  context/all-context.md.seed  (+12 -3)
-  [unchanged] (16 more)
-
-MANIFEST UPDATES:
-  managedDirs: +1 (added .claude/skills/new-skill)
-  version: 1.0.0 -> 1.1.0
-
-Publish v1.1.0? (patch/minor/major to change, abort to cancel)
+Publish v2.2.0? (patch/minor/major to change, abort to cancel)
 ```
 
 ## Publish Summary Output Format
 
 ```
-vc-publish complete: v1.0.0 -> v1.1.0
+vc-publish complete: v2.1.0 -> v2.2.0
 
 Published to: github.com/withkynam/vibecode-pro-max-kit.git
-Tag: v1.1.0
+Tag: v2.2.0
 Commit: abc1234
 
 Changes:
   2 managed files modified
-  1 new skill directory added
-  1 seed file modified
-  Manifest updated (managedDirs +1)
+  2 new files added
+  0 files removed
+  Manifest version bumped (2.1.0 -> 2.2.0)
 
 Leak check: PASSED
 ```

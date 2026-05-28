@@ -523,6 +523,10 @@ Ensure subagent:
   - MEDIUM (2 signals): include "Recommend UPDATE PROCESS -- significant changes detected."
   - HIGH (3+ signals): include "Strongly recommend UPDATE PROCESS -- harness/protocol files touched."
 
+**Parallel Fan-Out**
+
+At each phase transition above, consult `process/development-protocols/parallel-fan-out.md` for signal-based parallel subagent recommendations. See orchestration.md for the checkpoint summary.
+
 ---
 
 ## Key Principles

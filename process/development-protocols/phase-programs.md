@@ -207,6 +207,8 @@ For every phase, run this loop:
    - update the phase report with commands, outcomes, deviations, and blockers
    - update context docs if durable operational knowledge changed
    - update later phase plans if the new learning changes future work
+   - if execution reveals a concrete missing downstream lane, create the new follow-up phase plan or backlog artifact instead of leaving the follow-up only in chat
+   - keep the parent or umbrella plan in sync when follow-up routing or phase sequencing changes
 
 6. **Status decision**
    - mark the phase `✅ VERIFIED` only when the agreed evidence standard is satisfied
@@ -214,6 +216,9 @@ For every phase, run this loop:
 
 7. **Move-on recommendation**
    - name the exact next valid state after the phase closeout
+   - when a phase is well-tested and genuinely validated, recommend a commit checkpoint before broader follow-up work continues
+   - prefer `vc-git-manager` for logical commit splitting of execution changes before UPDATE PROCESS when the worktree contains implementation changes from the selected phase
+   - after UPDATE PROCESS changes plan or context artifacts, treat those as a separate process-artifact checkpoint rather than silently mixing them into the execution commit
    - if cleanup/context capture is required first, route through UPDATE PROCESS explicitly
    - if the next phase is already known, name the exact next phase plan path
    - if the current phase is not really green, keep the work on the same phase instead of pretending to advance

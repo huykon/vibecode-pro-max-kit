@@ -572,6 +572,9 @@ EXECUTE -> UPDATE PROCESS:
   - what was verified versus still unverified
   - what cleanup/context capture remains
   - uncommitted file count and git-manager offer (when worktree is dirty)
+  - commit-checkpoint recommendation:
+    - invoke `vc-git-manager` before UPDATE PROCESS when validated execution changes are ready to split into a logical code/test commit
+    - defer the commit checkpoint until after UPDATE PROCESS when the remaining changes are mainly `process/`, `.claude/`, `.codex/`, or `AGENTS.md`
   - the single best next valid state
 - Then ask one explicit next-step question such as:
   - `Implementation complete. The selected plan appears ready for cleanup. Enter UPDATE PROCESS mode to archive the plan and capture learnings?`
@@ -579,12 +582,18 @@ EXECUTE -> UPDATE PROCESS:
   - or `Implementation deviated from plan. Return to PLAN or enter UPDATE PROCESS mode to reconcile?`
 - If the next phase or follow-up is already known, name that exact plan path in the closeout summary so the user does not have to rediscover it.
 - If the worktree has uncommitted changes from this execution, offer: "Invoke vc-git-manager for logical commit splitting before UPDATE PROCESS?" Pass the `touched_files` list (files the vc-execute-agent reported changing) as context so vc-git-manager can scope its analysis.
+- If a phase is well-tested and genuinely validated, prefer surfacing a commit checkpoint instead of letting the work drift uncommitted while broader follow-up phases begin.
+- If execution revealed a concrete missing downstream lane, route UPDATE PROCESS to create the follow-up phase plan or backlog artifact and update the umbrella/parent plan instead of leaving the next step only in chat.
 - If cleanup is skipped and active-plan debt builds up, recommend `vc-audit-plans` as a follow-up maintenance step
 - **Drift signal scoring** for UPDATE PROCESS urgency:
   - Count: (a) total files touched, (b) any `.claude/`, `.codex/`, `README.md`, `AGENTS.md`, or `process/development-protocols/` changes, (c) session involved 3+ memory-worthy observations
   - LOW (0-1 signals): include "UPDATE PROCESS available if you want." in closeout
   - MEDIUM (2 signals): include "Recommend UPDATE PROCESS -- significant changes detected."
   - HIGH (3+ signals): include "Strongly recommend UPDATE PROCESS -- harness/protocol files touched."
+
+**Parallel Fan-Out**
+
+At each phase transition above, consult `process/development-protocols/parallel-fan-out.md` for signal-based parallel subagent recommendations. See orchestration.md for the checkpoint summary.
 
 ## Key Principles
 
