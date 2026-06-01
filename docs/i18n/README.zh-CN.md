@@ -27,7 +27,7 @@
 <p align="center">
   <img src="https://media.tenor.com/q_5em_iLaxoAAAAC/tanjiro-i-water-style.gif" alt="Flow like water" width="480">
   <br><br>
-  <em>"全集中——Spec 呼吸，拾之型：生生流转。<br>一个随每次功能交付而愈加强大的持续开发循环。<br>Context 在复利增长。水流永不中断。"</em><br>
+  <em>"全集中——Spec 呼吸，拾之型：Vibe 之流，永不中断。"</em><br>
   <strong>— �的门炭治郎</strong>
 </p>
 
@@ -80,7 +80,10 @@
     <img alt="Tech Stack Row 3" src="https://skillicons.dev/icons?i=supabase,firebase,postgres,mongodb,redis,docker,kubernetes,aws,gcp,azure,vercel,cloudflare,tailwind,electron&perline=15" />
   </picture>
   <br>
-  <sub>React · Next.js · Vue · Nuxt · Svelte · Angular · React Native · Electron · Node.js · Express · Bun · Hono · Python · Django · FastAPI · Flask · Ruby · Rails · Go · Rust · Java · Spring Boot · Kotlin · Swift · PHP · Laravel · C# · .NET · Elixir · TypeScript · Prisma · Supabase · Firebase · PostgreSQL · MongoDB · Redis · GraphQL · Docker · Kubernetes · Terraform · AWS · GCP · Azure · Vercel · Cloudflare · Tailwind · shadcn/ui · 以及你项目使用的任何其他技术栈</sub>
+  <p><em>不只是装饰。运行 <code>vc-setup</code> 时，并行 agent 会扫描你的代码库，<br>
+  检测你的技术栈，并构建项目专属的 context 组——每个 skill 在工作前都会读取它。<br>
+  其他 harness 把 agent 硬编码到某个语言——<code>rust-review-agent</code>、<code>python-linter</code>——换个地方就没用了。<br>
+  这个 harness 适配上方任意组合，并在你不断 ship 时持续积累知识。</em></p>
 </p>
 
 </div>
