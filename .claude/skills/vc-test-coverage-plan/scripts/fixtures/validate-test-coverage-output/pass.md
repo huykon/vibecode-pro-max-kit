@@ -11,7 +11,7 @@ Routing chain: read `process/context/tests/all-tests.md` first to select the run
 
 | Tier | Case | Command/Steps | Proves | Does NOT prove |
 | --- | --- | --- | --- | --- |
-| Fully-automated | packages/api route 200 | `pnpm --filter @sassy/api test` exits 0 | shape correct | load behavior |
+| Fully-automated | packages/api route 200 | `pnpm --filter @your-app/api test` exits 0 | shape correct | load behavior |
 | Hybrid | packages/ui component render | `pnpm test` — precondition: jsdom | renders | visual polish |
 
 ## Gap Resolution Options

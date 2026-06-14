@@ -389,7 +389,7 @@ Detect old directory layouts and reorganize them into the harness standard struc
 |------------|-----------------|
 | `process/plans/` exists, no `process/general-plans/` | Create `process/general-plans/active/` and `process/general-plans/completed/`. For each file in `process/plans/`: scan for "COMPLETE", "DONE", or checkmark markers -- move matches to `completed/`, move the rest to `active/`. Remove empty `process/plans/`. |
 | `process/reports/` exists at top level | Move `process/reports/*` to `process/general-plans/reports/`. Remove empty `process/reports/`. |
-| `process/skills/` exists at top level | Move `process/skills/*` to `process/general-plans/references/`. Remove empty `process/skills/`. |
+| `process/skills/` exists at top level | Move `process/skills/*` to `process/general-plans/backlog/`. Remove empty `process/skills/`. |
 | Example PRDs at old locations (under `process/context/` or `process/context/planning/`) not yet moved to `process/development-protocols/references/` | Move to `process/development-protocols/references/`. |
 | process/context/backlog.md | Move to `process/general-plans/backlog/backlog.md` |
 
@@ -543,7 +543,7 @@ Scan these locations for feature identification:
 - For single apps: each major route group with its own components/API is a candidate
 
 **Each feature folder gets:**
-- `active/`, `completed/`, `backlog/`, `reports/`, `references/` subdirectories
+- `active/`, `completed/`, `backlog/` subdirectories (do NOT create `reports/` or `references/` — these are deprecated sibling dirs; new artifacts go inside task folders)
 - `_GUIDE.md` explaining the feature scope, key files, and current state
 
 ### all-context.md Population Instructions
@@ -612,7 +612,8 @@ When existing `process/` content is found, follow these rules:
 Verify all directories from the target tree exist:
 
 ```bash
-ls -d process/development-protocols/ process/context/ process/context/planning/ process/context/tests/ process/general-plans/active/ process/general-plans/completed/ process/general-plans/backlog/ process/general-plans/reports/ process/general-plans/references/ process/features/
+ls -d process/development-protocols/ process/context/ process/context/planning/ process/context/tests/ process/general-plans/active/ process/general-plans/completed/ process/general-plans/backlog/ process/features/
+# Note: process/general-plans/reports/ and process/general-plans/references/ are deprecated sibling dirs for new repos; skip if absent
 ```
 
 ### STUDY Output Quality Checks

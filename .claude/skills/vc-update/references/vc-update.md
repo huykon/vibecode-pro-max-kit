@@ -18,11 +18,7 @@ The manifest uses glob-based patterns resolved by `resolve-manifest.mjs`.
     ".codex/**",
     "CLAUDE.md",
     "AGENTS.md",
-    "process/development-protocols/**",
-    "process/_seeds/**",
-    "process/_seeds/**/.gitkeep",
-    "process/_seeds/**/.gitignore",
-    "process/_seeds/**/.env.example"
+    "process/development-protocols/**"
   ],
   "exclude": [
     "process/context/all-context.md",
@@ -67,7 +63,7 @@ Old manifests use explicit file lists instead of glob patterns:
 | `version` | string | Semver version (< 2.1.0) |
 | `managed` | string[] | Individual files overwritten on update |
 | `managedDirs` | string[] | Directories synced entirely (rsync-style replace) |
-| `seedsDir` | string | Path to seeds directory (always `process/_seeds/`) |
+| `seedsDir` | string | Path to legacy seeds directory when a pre-2.1.0 kit release still ships one |
 | `symlinks` | object | Symlink path -> target mappings |
 | `deletions` | string[] | Paths to delete (accumulated across versions) |
 

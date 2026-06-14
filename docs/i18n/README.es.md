@@ -48,8 +48,8 @@
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/graphs/contributors"><img src="https://img.shields.io/github/contributors/withkynam/vibecode-pro-max-kit" alt="Contributors"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/withkynam/vibecode-pro-max-kit/validate.yml" alt="CI"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/commits/main"><img src="https://img.shields.io/github/last-commit/withkynam/vibecode-pro-max-kit" alt="Last Commit"></a>
-  <img src="https://img.shields.io/badge/agents-12-orange" alt="Agents">
-  <img src="https://img.shields.io/badge/skills-32-purple" alt="Skills">
+  <img src="https://img.shields.io/badge/agents-15-orange" alt="Agents">
+  <img src="https://img.shields.io/badge/skills-33-purple" alt="Skills">
   <img src="https://img.shields.io/badge/tools-7_%E2%9C%93-38BDF8" alt="7 Tools">
 </p>
 
@@ -126,7 +126,7 @@ your-project/
 │   │   ├── vc-research-agent.md
 │   │   ├── vc-execute-agent.md
 │   │   └── ...
-│   ├── skills/              # ⚡ 31 skills auto-descubiertas
+│   ├── skills/              # ⚡ 33 skills auto-descubiertas
 │   │   ├── vc-generate-plan/
 │   │   ├── vc-security/
 │   │   ├── vc-scout/
@@ -275,7 +275,7 @@ Ya seas desarrollador, PM o CEO que acaba de descubrir el vibe coding — este p
 
 ## 🛠️ La Solución
 
-Este harness instala un sistema de desarrollo completo en tu proyecto — no solo un archivo CLAUDE.md, sino **12 agentes especializados, 31 skills** y un flujo de trabajo con fases bloqueadas que obliga a tu agente a **entender antes de construir**.
+Este harness instala un sistema de desarrollo completo en tu proyecto — no solo un archivo CLAUDE.md, sino **15 agentes especializados, 33 skills** y un flujo de trabajo con fases bloqueadas que obliga a tu agente a **entender antes de construir**.
 
 <br>
 
@@ -431,13 +431,13 @@ Investiga tu código de auth actual y cómo otros codebases resolvieron RBAC, es
 <tr>
 <td align="center" width="50%" valign="top">
 <h1>🤖</h1>
-<h3>12</h3>
+<h3>15</h3>
 <strong>Agentes Especializados</strong><br>
 <sub>Expertos de dominio que controlan cada fase del desarrollo</sub>
 </td>
 <td align="center" width="50%" valign="top">
 <h1>⚡</h1>
-<h3>32</h3>
+<h3>33</h3>
 <strong>Skills Auto-Descubiertas</strong><br>
 <sub>Capacidades reutilizables activadas por coincidencia de palabras clave</sub>
 </td>
@@ -528,7 +528,7 @@ Aléjate y vuelve al trabajo completado.
 
 ### 🧬 Investigación de Arquitectura Automática — Aprende de Cualquier Codebase
 
-El agente no solo lee tu código — **estudia otros repositorios** para aprender cómo resolvieron problemas similares (`vc-xia`).
+El agente no solo lee tu código — **estudia otros repositorios** para aprender cómo resolvieron problemas similares (`vc-docs-seeker`).
 
 > 💡 Investiga, compara enfoques y adapta los mejores patrones a tu codebase. Las decisiones de arquitectura están informadas por implementaciones del mundo real, no por buenas prácticas alucinadas.
 
@@ -605,7 +605,7 @@ Detecta tu intención a partir del lenguaje natural. "build webhook support" →
 <td width="50%" valign="top">
 <h1>🔍</h1>
 <strong>Descubrimiento Automático de Skills</strong><br><br>
-Antes de enrutar cualquier solicitud, escanea <strong>32 skills</strong> y hace coincidencia de palabras clave. Di "add webhook support" y <code>vc-security</code> + <code>vc-scenario</code> aparecen automáticamente.
+Antes de enrutar cualquier solicitud, escanea <strong>33 skills</strong> y hace coincidencia de palabras clave. Di "add webhook support" y <code>vc-security</code> + <code>vc-scenario</code> aparecen automáticamente.
 </td>
 <td width="50%" valign="top">
 <h1>💾</h1>
@@ -793,7 +793,7 @@ Antes de que se escriba una sola línea de código, el sistema puede detectar pr
 <td width="50%" valign="top">
 <h1>👥</h1>
 <strong>Equipos de Agentes en Paralelo</strong><br><br>
-<code>vc-team</code> — Múltiples agentes trabajando <strong>simultáneamente</strong> con aislamiento mediante git worktree. Investigación en paralelo, ejecución en paralelo, revisión en paralelo, debugging adversarial.
+<code>vc-agent-strategy-compare</code> — Recommends execution strategy at every phase boundary (sequential / parallel / workflow / agent team) with cost estimates.
 </td>
 </tr>
 <tr>
@@ -1049,7 +1049,7 @@ process/features/{feature}/
 ### 12 Agentes
 
 <details>
-<summary>Haz clic para expandir la lista de agentes (12 agentes)</summary>
+<summary>Haz clic para expandir la lista de agentes (15 agentes)</summary>
 
 <br>
 
@@ -1084,7 +1084,7 @@ process/features/{feature}/
 ### 31 Skills (auto-descubiertas)
 
 <details>
-<summary>Haz clic para expandir la lista de skills (31 skills)</summary>
+<summary>Haz clic para expandir la lista de skills (33 skills)</summary>
 
 <br>
 
@@ -1094,15 +1094,14 @@ process/features/{feature}/
 
 **🐛 Debug y seguridad** — `vc-debug` · `vc-security` (STRIDE + OWASP + auto-fix) · `vc-autoresearch` (optimización autónoma)
 
-**📚 Investigación** — `vc-docs-seeker` · `vc-scout` · `vc-docs` · `vc-repomix` · `vc-xia` (comparación de repositorios)
+**📚 Investigación** — `vc-docs-seeker` · `vc-scout`)
 
-**🎨 Frontend** — `vc-frontend-design` · `vc-chrome-devtools` · `vc-agent-browser` · `vc-web-testing`
+**🎨 Frontend** — `vc-frontend-design`· `vc-agent-browser` · `vc-web-testing`
 
-**⚙️ Utilidades** — `vc-context-engineering` · `vc-mcp-management` · `vc-preview` · `vc-team` (agentes en paralelo) · `vc-tech-graph` · `vc-watzup` (handoff de sesión) · `vc-merge-worktree`
+**⚙️ Utilidades** —))
 
 </details>
 
-> 💡 Algunas skills (como `vc-xia`) fueron inspiradas por [ClaudeKit](https://claudekit.cc/?ref=OEOM7R7G) de [@mrgoonie](https://github.com/mrgoonie). Nos enfocamos en menos skills pero más profundas en lugar de 80+.
 
 <br>
 
@@ -1178,7 +1177,6 @@ Run vc-update
 
 ### 🙏 Créditos
 
-Este proyecto se benefició de [ClaudeKit](https://claudekit.cc/?ref=OEOM7R7G) de [@mrgoonie](https://github.com/mrgoonie) — en particular skills como `ck:xia` que inspiraron algunas de las nuestras.
 
 La diferencia: vibecode-pro-max-kit se centra en el framework de desarrollo spec-driven y la organización de contexto auto-mejorable, sin sobrecargarte con 80+ skills. Menos herramientas, más estructura.
 

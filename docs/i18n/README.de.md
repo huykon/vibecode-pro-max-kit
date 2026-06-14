@@ -48,8 +48,8 @@
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/graphs/contributors"><img src="https://img.shields.io/github/contributors/withkynam/vibecode-pro-max-kit" alt="Contributors"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/withkynam/vibecode-pro-max-kit/validate.yml" alt="CI"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/commits/main"><img src="https://img.shields.io/github/last-commit/withkynam/vibecode-pro-max-kit" alt="Last Commit"></a>
-  <img src="https://img.shields.io/badge/agents-12-orange" alt="Agents">
-  <img src="https://img.shields.io/badge/skills-32-purple" alt="Skills">
+  <img src="https://img.shields.io/badge/agents-15-orange" alt="Agents">
+  <img src="https://img.shields.io/badge/skills-33-purple" alt="Skills">
   <img src="https://img.shields.io/badge/tools-7_%E2%9C%93-38BDF8" alt="7 Tools">
 </p>
 
@@ -431,13 +431,13 @@ Es recherchiert deinen aktuellen Auth-Code und wie andere Codebasen RBAC gelöst
 <tr>
 <td align="center" width="50%" valign="top">
 <h1>🤖</h1>
-<h3>12</h3>
+<h3>15</h3>
 <strong>Spezialisierte Agenten</strong><br>
 <sub>Fachexperten, die jede Entwicklungsphase verantworten</sub>
 </td>
 <td align="center" width="50%" valign="top">
 <h1>⚡</h1>
-<h3>32</h3>
+<h3>33</h3>
 <strong>Automatisch erkannte Skills</strong><br>
 <sub>Wiederverwendbare Fähigkeiten durch Keyword-Matching gefunden</sub>
 </td>
@@ -528,7 +528,7 @@ Geh weg und komm zu abgeschlossener Arbeit zurück.
 
 ### 🧬 Automatische Architektur-Recherche — Von jeder Codebasis lernen
 
-Der Agent liest nicht nur deinen Code — er **studiert andere Repositories**, um zu lernen, wie sie ähnliche Probleme gelöst haben (`vc-xia`).
+Der Agent liest nicht nur deinen Code — er **studiert andere Repositories**, um zu lernen, wie sie ähnliche Probleme gelöst haben (`vc-docs-seeker`).
 
 > 💡 Er recherchiert, vergleicht Ansätze und adaptiert die besten Muster in deine Codebasis. Architekturentscheidungen basieren auf realen Implementierungen, nicht auf halluzinierten Best Practices.
 
@@ -793,7 +793,7 @@ Bevor eine einzige Zeile Code geschrieben wird, kann das System durch spezialisi
 <td width="50%" valign="top">
 <h1>👥</h1>
 <strong>Parallele Agenten-Teams</strong><br><br>
-<code>vc-team</code> — Mehrere Agenten arbeiten <strong>gleichzeitig</strong> mit git-Worktree-Isolation. Parallel recherchieren, parallel ausführen, parallel reviewen, adversarial debuggen.
+<code>vc-agent-strategy-compare</code> — Recommends execution strategy at every phase boundary (sequential / parallel / workflow / agent team) with cost estimates.
 </td>
 </tr>
 <tr>
@@ -1094,15 +1094,14 @@ process/features/{feature}/
 
 **🐛 Debug & Sicherheit** — `vc-debug` · `vc-security` (STRIDE + OWASP + Auto-Fix) · `vc-autoresearch` (autonome Optimierung)
 
-**📚 Recherche** — `vc-docs-seeker` · `vc-scout` · `vc-docs` · `vc-repomix` · `vc-xia` (Repo-Vergleich)
+**📚 Recherche** — `vc-docs-seeker` · `vc-scout`)
 
-**🎨 Frontend** — `vc-frontend-design` · `vc-chrome-devtools` · `vc-agent-browser` · `vc-web-testing`
+**🎨 Frontend** — `vc-frontend-design`· `vc-agent-browser` · `vc-web-testing`
 
-**⚙️ Hilfsmittel** — `vc-context-engineering` · `vc-mcp-management` · `vc-preview` · `vc-team` (parallele Agenten) · `vc-tech-graph` · `vc-watzup` (Sitzungsübergabe) · `vc-merge-worktree`
+**⚙️ Hilfsmittel** —))
 
 </details>
 
-> 💡 Einige Skills (wie `vc-xia`) wurden von [ClaudeKit](https://claudekit.cc/?ref=OEOM7R7G) von [@mrgoonie](https://github.com/mrgoonie) inspiriert. Wir haben uns auf weniger, aber tiefere Skills konzentriert statt auf 80+.
 
 <br>
 
@@ -1178,7 +1177,6 @@ Wir freuen uns über Beiträge! Siehe [CONTRIBUTING.md](CONTRIBUTING.md) für Ri
 
 ### 🙏 Danksagungen
 
-Dieses Projekt profitierte von [ClaudeKit](https://claudekit.cc/?ref=OEOM7R7G) von [@mrgoonie](https://github.com/mrgoonie) — insbesondere Skills wie `ck:xia`, die einige unserer inspirierten.
 
 Der Unterschied: vibecode-pro-max-kit konzentriert sich auf das spec-getriebene Entwicklungsframework und die selbst verbessernde Kontextorganisation, ohne dich mit 80+ Skills zu überwältigen. Weniger Tools, mehr Struktur.
 

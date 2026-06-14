@@ -62,7 +62,7 @@ Use these glosses when any of these terms first appear in a response. You do not
 | Clarification questions (vc-intent-clarify) | **Always** | Lead with the recommended option. |
 | Code comments | **Always** | Explain WHY not WHAT; delete comments that restate code. |
 | Code itself | No | Style here governs prose, not code structure (that's `implementation-standards.md`). |
-| Product UI copy | No | Shipped-product tone lives in `process/context/uxui/`, not here. |
+| Product UI copy | No | Shipped-product tone lives in `process/context/ui/`, not here. |
 
 ## How This Is Wired (no duplication)
 

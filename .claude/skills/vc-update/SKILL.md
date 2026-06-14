@@ -1,12 +1,16 @@
 ---
-name: vc:update
+name: vc-update
 description: Pull latest agent harness improvements from the remote kit repository. Shows a dry-run diff summary, waits for confirmation, then applies updates.
+trigger_keywords: update harness, pull kit, sync harness, upgrade agents
+layer: contract
 metadata:
   author: vibecode
-  version: "2.0.0"
+  version: "3.0.0"
 ---
 
 # vc-update
+
+> **Output style:** Follow `process/development-protocols/communication-standards.md` — answer-first, plain language, no unexplained jargon, TL;DR on long responses.
 
 Pull the latest agent harness improvements from the remote vibecode-pro-max-kit repository into the current project.
 
@@ -60,6 +64,7 @@ Parse the JSON output to extract:
 - `copyIfMissing` (string[]) -- files only installed if they don't already exist locally
 - `strip` (string[]) -- files needing content stripping (informational)
 - `symlinks` (object) -- symlink path -> target mappings
+- `legacyDeletions` (string[]) -- paths to delete on migration (present in kit v3.0.0+; absent in older kits)
 
 Extract the remote version from the manifest:
 ```bash
@@ -84,10 +89,13 @@ Compare the remote manifest `version` against `currentVersion`.
 2. Also check for legacy `deletions` from the v2.0.4 era -- the resolver embeds these as `legacyDeletions` in legacy mode. For any path in the legacy deletions list that still exists locally, mark it for deletion.
 3. Write this synthetic snapshot to `.vc-installed-files` for future updates.
 
+**If `.vc-installed-files` EXISTS** and the remote manifest includes a `legacyDeletions` array (kit v3.0.0+):
+- For any path in `legacyDeletions` that still exists locally, add it to the removals list regardless of snapshot state. This handles paths that were never tracked in the snapshot (e.g. renamed skills, deprecated dirs).
+
 **Compute the diff** using three lists: remote `files`, local snapshot, and local filesystem:
 
 - **Additions:** Files in remote `files` but NOT in local snapshot (new files to install).
-- **Removals:** Files in local snapshot but NOT in remote `files` (files removed from kit -- should be deleted locally).
+- **Removals:** Files in local snapshot but NOT in remote `files` (files removed from kit -- should be deleted locally). Also includes `legacyDeletions` entries still present on disk.
 - **Modifications:** Files in both lists -- compare content via `diff` between `$TMPDIR/{path}` and `{projectRoot}/{path}`.
   - If identical: **unchanged**.
   - If different: **modified** (note line count changes).
@@ -155,16 +163,23 @@ On user confirmation, apply in this order:
    - Delete the local file.
    - If the parent directory is now empty, remove it too.
 
-3. **Symlinks**: For each entry in `symlinks`:
+3. **Legacy deletions** (kit v3.0.0+): For each path in `legacyDeletions` that still exists locally:
+   - If it is a directory: `rm -rf {path}`.
+   - If it is a file: delete it.
+   - Clean up empty parent directories by iterating deepest-first: after all individual deletions in this step are done, walk the set of parent paths (deepest subdirectory first) and `rmdir` each that is now empty. This ensures no orphan dirs remain.
+
+   **Sub-case B (no `.vc-installed-files`):** When the snapshot file is absent (very old install or re-install scenario), the normal removal-by-diff path (step 2) cannot run. To ensure deprecated paths are still removed: apply `legacyDeletions` unconditionally in this case — for each path in `legacyDeletions` that still exists locally on disk, `rm -rf` if directory or `rm` if file, then clean empty parents deepest-first. This sub-case B fallback must run even when `.vc-installed-files` is absent, so that deprecated skill dirs and protocol files left over from a prior install are removed.
+
+4. **Symlinks**: For each entry in `symlinks`:
    - If a real directory exists at the path: `rm -rf` it first.
    - If a wrong symlink exists: `rm` it first.
    - Create the symlink: `ln -s {target} {path}`
 
-4. **Write snapshot**: Write the remote `files` list (sorted, one per line) to `.vc-installed-files`.
+5. **Write snapshot**: Write the remote `files` list (sorted, one per line) to `.vc-installed-files`.
 
-5. **Write version**: Write the manifest version string to `.vc-version`.
+6. **Write version**: Write the manifest version string to `.vc-version`.
 
-6. **Clean up**: Remove `$TMPDIR`.
+7. **Clean up**: Remove `$TMPDIR`.
 
 If any copy/delete fails with a permission error:
 - Print which file failed and the error.
@@ -189,15 +204,27 @@ Version written to .vc-version: {remoteVersion}
 
 ## Rules
 
-- `process/_seeds/` is managed reference -- overwritten entirely on update (included in the resolved file list).
+- `process/_seeds/` is a legacy optional scaffold surface. If a remote release still includes it, treat it as managed reference and overwrite it entirely on update. Its absence in the live repo is valid.
 - Real working files outside `_seeds/` (`process/context/`, `process/features/`, `process/general-plans/`) are **NEVER** touched by vc-update.
 - Always show the dry-run diff before applying. Never apply without user confirmation.
 - Clean up the temp clone directory even on error or abort.
 - If `.vc-version` is missing, treat as version `0.0.0` (first update, apply everything).
-- `CLAUDE.md` and `AGENTS.md` are harness-only files — overwritten freely on update. Project-specific content belongs in `process/context/all-context.md`, not in these files.
+- `CLAUDE.md` and `AGENTS.md` are harness-only files -- overwritten freely on update. Project-specific content belongs in `process/context/all-context.md`, not in these files.
 - Files in the `merge` list (e.g. `.claude/settings.json`) are never overwritten if they exist locally. Show the diff for manual review.
 - Files in the `copyIfMissing` list are only installed if they don't already exist locally.
 - Removals are detected by comparing the local `.vc-installed-files` snapshot against the new resolved file list.
+
+## Migration from v2.x
+
+Kit v3.0.0 introduces the `legacyDeletions` key in `resolveGlob()`'s JSON output (Step 4 above). Old SKILL.md versions (v2.0.0) already process `legacyDeletions` when it is present in the resolver output (they used it only in legacy/resolveLegacy mode previously). Starting with kit v3.0.0, `legacyDeletions` is also emitted in glob mode — so existing v2.x installs receive it automatically on their next `vc-update` run without any local SKILL.md change required.
+
+The one-shot migration on next `vc-update` from kit v3.0.0:
+1. Resolver emits `legacyDeletions: [".claude/skills/vc-team", ".claude/skills/vc-chrome-devtools", ...]` in the JSON output.
+2. Step 6 applies those deletions in addition to the normal snapshot diff.
+3. The 11 deprecated skill dirs (vc-team, vc-chrome-devtools, vc-docs, vc-repomix, vc-preview, vc-merge-worktree, vc-tech-graph, vc-watzup, vc-xia, vc-mcp-management, vc-context-engineering) plus 5 deprecated protocol paths are removed from the local install in one pass.
+4. Snapshot is written with the new v3.0.0 file list — subsequent updates use normal diff logic.
+
+**Very old installs** (SKILL.md predating `legacyDeletions` support): use `install.sh` for a clean reinstall instead of `vc-update`.
 
 ## Reference
 

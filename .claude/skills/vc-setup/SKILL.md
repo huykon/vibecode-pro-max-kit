@@ -1,12 +1,16 @@
 ---
-name: vc:setup
-description: Interactive agent harness setup for any project. Detects your stack, asks about your project, scaffolds process directories, deep-scans the codebase, and populates context with real content. Works on fresh projects and existing projects with pre-existing configs — always asks before reorganizing.
+name: vc-setup
+description: Interactive harness setup for any project. Detects stack, scaffolds process dirs, deep-scans the codebase, populates context. Works on fresh and existing projects — always asks before reorganizing.
+trigger_keywords: seed, harness, bootstrap, new project, scaffold, setup
+layer: helper
 metadata:
   author: vibecode
   version: "3.2.0"
 ---
 
 # VibeCo Agent Harness Setup
+
+> **Output style:** Follow `process/development-protocols/communication-standards.md` — answer-first, plain language, no unexplained jargon, TL;DR on long responses.
 
 Interactive setup for the agent development harness. Works on fresh projects and existing projects with pre-existing `.claude/` or `process/` configs.
 
@@ -162,7 +166,7 @@ Create the `process/` directory with seed files and instructional content.
 |------------|-----------------|
 | `process/plans/` exists, `process/general-plans/` does not | Move `process/plans/*` to `process/general-plans/active/`, then remove empty `process/plans/` |
 | `process/reports/` exists at top level | Move `process/reports/*` to `process/general-plans/reports/`, then remove empty `process/reports/` |
-| `process/skills/` exists at top level | Move `process/skills/*` to `process/general-plans/references/`, then remove empty `process/skills/` |
+| `process/skills/` exists at top level | Move `process/skills/*` to `process/general-plans/backlog/`, then remove empty `process/skills/` |
 | Example PRDs at old locations (e.g. `process/context/example-*.md` or under `process/context/planning/`) that are not in `process/development-protocols/references/` | Move to `process/development-protocols/references/` |
 | process/context/backlog.md at top of context/ | Move to `process/general-plans/backlog/backlog.md` |
 
@@ -181,7 +185,7 @@ Seed and template handling:
 3. Place `_GUIDE.md` files in empty process folders to explain what goes there.
 4. Retain `.seed` originals alongside populated files: after copying and filling seed files, also copy the original `.seed` files to the target `process/` directory as structural reference companions. These `.seed` files serve as reference for what sections are expected, and future `vc-update` can diff against them to detect structural drift.
 5. Use `_all-group-template.md.seed` as the base when creating new context group entrypoints during the STUDY phase.
-6. Use `_feature-template/_GUIDE.md.seed` as the base when creating new feature folder guides during the STUDY phase. The `_feature-template/` now includes all 5 subdirectories (`active/`, `completed/`, `backlog/`, `reports/`, `references/`) with their own `_GUIDE.md` files.
+6. Use `_feature-template/_GUIDE.md.seed` as the base when creating new feature folder guides during the STUDY phase. The `_feature-template/` includes 3 subdirectories (`active/`, `completed/`, `backlog/`) with their own `_GUIDE.md` files. Do NOT create `reports/` or `references/` sibling dirs for new repos — these are deprecated; new artifacts go inside task folders under `active/` or `completed/`.
 7. See `references/vc-setup.md` for the full target directory tree and placeholder list.
 
 **After scaffolding, show a summary of what was created/changed.** Example: "Created 12 directories, 8 seed files, 6 protocol docs. No existing files were modified."
@@ -220,8 +224,13 @@ Verify the setup is complete, correct, and populated with real content.
    - `all-tests.md` has actual test commands (not placeholder text)
    - Context groups created have corresponding entries in the routing tables
    - Feature folders created have `_GUIDE.md` files with real scope descriptions
-5. Report any issues found.
-6. Suggest running validation scripts if they exist in the target repo:
+5. **Catalog generate-on-install safety check:** If `process/context/generated-skills-catalog.json` is absent after setup, generate it now:
+   ```bash
+   node .claude/skills/vc-audit-context/scripts/generate-skills-catalog.mjs --write
+   ```
+   This file is required for `discover-skills.mjs` (Routing Step 0) to work correctly. Fresh installs that copy this file from the kit manifest include do not need this step, but if the file is missing for any reason (missing manifest include, partial install), generate it explicitly.
+6. Report any issues found.
+7. Suggest running validation scripts if they exist in the target repo:
    - `node .claude/skills/vc-generate-context/scripts/validate-all-context.mjs`
    - `node .claude/skills/vc-audit-context/scripts/validate-context-discovery.mjs`
 

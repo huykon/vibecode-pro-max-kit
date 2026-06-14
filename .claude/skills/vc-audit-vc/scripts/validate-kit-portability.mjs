@@ -22,10 +22,21 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 
-const root = process.cwd();
+const rootFlagIndex = process.argv.indexOf("--root");
+const root =
+  rootFlagIndex === -1
+    ? execSync("git rev-parse --show-toplevel").toString().trim()
+    : path.resolve(process.argv[rootFlagIndex + 1] ?? "");
 const failures = [];
 const warnings = [];
+
+if (!root || !fs.existsSync(root)) {
+  console.error(`Missing or invalid root: ${root || "<empty>"}`);
+  process.exitCode = 1;
+  process.exit();
+}
 
 function fail(message) {
   failures.push(message);
@@ -51,9 +62,18 @@ function walk(dir, predicate, out = []) {
 
 // Enumerated shipped TEXT surfaces (mirror of the vc-publish Step 8 resolved set,
 // minus the resolver). Excludes binaries and node_modules (via SKIP_DIR).
+//
+// Important: the live manifest does NOT ship `process/context/**`. The standing
+// validator must scan the shipped kit surface only, then validate outbound
+// `process/context/...` references from that surface against the survivor
+// allowlist below.
 const textFiles = [
   "CLAUDE.md",
   "AGENTS.md",
+  "benchmark-profile.md",
+  "harbor-runbook.md",
+  "benchmark-kit-manifest.json",
+  ...walk("harbor_agents", (rel) => rel.endsWith(".py")),
   ...walk(".claude/skills", (rel) => /\.(md|cjs|mjs|py|js|json)$/.test(rel)),
   ...walk(".claude/agents", (rel) => rel.endsWith(".md")),
   ...walk(".codex", (rel) => /\.(md|toml|cjs|mjs|py|js|json)$/.test(rel)),
@@ -68,7 +88,7 @@ const BRAND_RE = /flowser|CloakBrowser|OpenClaw|Supabase/i;
 // Bucket-4 line-content allowlist: lines that MUST keep a brand literal to
 // function. A brand hit on one of these lines is legitimate, not a leak.
 //   - `author: flowser`          -- maintainer frontmatter tag, not a project leak
-//   - isFlowserActivePlanPath    -- internal code identifier (vc-watzup scan)
+//   - isFlowserActivePlanPath    -- internal code identifier (vc-review-situation scan)
 //   - this validator's + vc-publish's OWN brand-pattern lines (grep / regex strings)
 //     -- otherwise the gate flags itself. Matched via the BRAND_LITERAL_MARKER and
 //     the grep-invocation markers below.
@@ -118,7 +138,13 @@ for (const file of textFiles) {
 const CONTEXT_SURVIVORS = new Set([
   "process/context/all-context.md",
   "process/context/tests/all-tests.md",
+  "process/context/generated-skills-catalog.json",
 ]);
+
+const rootModeContextSurvivors =
+  rootFlagIndex === -1
+    ? CONTEXT_SURVIVORS
+    : new Set(walk("process/context", (rel) => /\.(md|json)$/.test(rel)));
 
 function isConcreteContextFileRef(ref) {
   if (/[{}[*\]]/.test(ref)) return false; // glob / placeholder
@@ -135,7 +161,7 @@ for (const file of textFiles) {
     for (const match of line.matchAll(/`(process\/context\/[^`\s]+)`/g)) {
       const ref = match[1].replace(/[.,;:]+$/, "");
       if (!isConcreteContextFileRef(ref)) continue; // portable dir/glob/ellipsis ref
-      if (CONTEXT_SURVIVORS.has(ref)) continue; // shipped/seeded survivor
+      if (rootModeContextSurvivors.has(ref)) continue; // shipped/seeded survivor
       fail(
         `${file}:${index + 1} non-portable context path leak: \`${ref}\` is not a shipped/seeded survivor`,
       );

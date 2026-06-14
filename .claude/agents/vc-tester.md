@@ -132,7 +132,7 @@ For unmapped: "[!] No tests found for `<file>` — consider adding tests for `<f
 
 **All-unmapped edge case:** If ALL changed files in the blast-radius are unmapped (no test files found for any changed file) AND no validate-contract test gates exist for this blast-radius: report `DONE_WITH_CONCERNS` (NOT `DONE`) with message: 'Zero test coverage in blast radius — no automated gates to run. Coverage gap documented.' Emit: `COVERAGE_GAP: entire blast radius has zero test coverage — new tests recommended for [list of unmapped files].` Rationale: vacuous-pass DONE misrepresents the state and would allow unmeasured code to pass EVL silently.
 
-**Multi-runner resolution:** When the Context Envelope `test-runner` field contains a pipe-delimited multi-runner value (e.g., `bun test | vitest`), OR when changed files span packages with different test runners (API = bun test; frontend = vitest), run each runner scoped to its own package — do NOT attempt a combined command. Example: `pnpm --filter @sassy/api test` for bun, then `pnpm test` for vitest. See `process/context/tests/all-tests.md` for the package-to-runner mapping.
+**Multi-runner resolution:** When the Context Envelope `test-runner` field contains a pipe-delimited multi-runner value (e.g., `bun test | vitest`), OR when changed files span packages with different test runners (API = bun test; frontend = vitest), run each runner scoped to its own package — do NOT attempt a combined command. Example: `pnpm --filter @your-org/api test` for bun, then `pnpm test` for vitest. See `process/context/tests/all-tests.md` for the package-to-runner mapping.
 
 **Aggregate status rule:** When multiple runners are used, determine overall status as follows:
 - ALL runners pass → overall `DONE`

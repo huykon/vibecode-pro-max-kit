@@ -8,6 +8,7 @@ Comprehensive tests for `.claude/statusline.cjs` and supporting libraries.
 - `statusline.test.cjs` - Unit/regression tests for helpers and parser logic (57 tests)
 - `statusline-integration.test.cjs` - End-to-end rendering tests for `statusline.cjs` (30 tests)
 - `statusline-scenarios.test.cjs` - Cross-platform and user workflow scenarios (19 tests)
+- `transcript-parser-signals.test.cjs` - Additive run-record signal extraction in `transcript-parser.cjs` (vc-runtime-harness Phase 2: phaseCompletes/agentSpawns/teamCreates/taskCreates/sendMessages/writes; fixtures F1–F15)
 - `statusline-suite.cjs` - Aggregate runner for all statusline suites
 - `vc-config-utils.test.cjs` - Existing config utility coverage
 

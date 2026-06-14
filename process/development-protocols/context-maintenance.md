@@ -1,3 +1,15 @@
+---
+name: protocol:context-maintenance
+description: "How process/context/ is organized, when to create or split groups, and how durable knowledge differs from feature plans."
+date: 09-06-26
+metadata:
+  node_type: memory
+  type: protocol
+  read_order: 6
+  required: false
+  read_when: "maintaining context docs, creating/splitting context groups, or keeping all-context.md accurate"
+---
+
 # Context Maintenance
 
 ## Purpose
@@ -13,6 +25,8 @@ Use it for stable operational knowledge such as:
 - UI or workflow conventions
 
 ## Read Order
+
+Before reading `all-context.md`, run `find process/context/ -type f | sort` to get the full listing of all context files. This prevents silently skipping a context file that is not yet indexed by the router.
 
 1. Read `process/context/all-context.md` first.
 2. Load only the relevant root file or context-group entrypoint.

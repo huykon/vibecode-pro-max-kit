@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 
-export const root = process.cwd();
+export const root = execSync('git rev-parse --show-toplevel').toString().trim();
 
 export function abs(relPath) {
   return path.join(root, relPath);

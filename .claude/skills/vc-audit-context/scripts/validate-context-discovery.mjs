@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 
-const root = process.cwd();
+const root = execSync('git rev-parse --show-toplevel').toString().trim();
 const failures = [];
 const warnings = [];
 const ignoredSkillFrontmatter = new Set(["sync-from-riper5", "sync-to-riper5"]);
@@ -71,6 +72,11 @@ function getGroupEntrypoint(group) {
 
 const legacyEntrypoints = [
   "process/context/README.md",
+  // Legacy flat tests entrypoint. The canonical path is the grouped tests router;
+  // a flat process/context/tests.md file is a
+  // migrated-away legacy shape and must NOT be re-created. (Kept as a guard — this
+  // literal flags the legacy flat file if it reappears, and does NOT match the
+  // canonical grouped path.)
   "process/context/tests.md",
   ...walk("process/context", (rel) => /\/README\.md$/.test(rel) || /\/[^/]+-README\.md$/.test(rel)),
 ];
@@ -108,9 +114,8 @@ for (const skill of ["vc-audit-context", "vc-audit-plans", "vc-generate-context"
   if (!exists(codexPath)) fail(`${codexPath} missing`);
   if (exists(file)) {
     const fm = parseFrontmatter(file);
-    // YAML name uses colon (vc:audit-context), folder uses dash (vc-audit-context)
-    const expectedName = skill.replace("vc-", "vc:");
-    if (fm.name !== skill && fm.name !== expectedName) fail(`${file} frontmatter name is ${fm.name || "missing"}, expected ${expectedName}`);
+    // YAML name uses vc- prefix matching folder name convention
+    if (fm.name !== skill) fail(`${file} frontmatter name is ${fm.name || "missing"}, expected ${skill}`);
     if (!fm.description) fail(`${file} frontmatter description missing`);
   }
 }
@@ -209,7 +214,7 @@ const staleWorkflowPatterns = [
   { pattern: "docs-manager", reason: "use update-process-agent for project context/process docs" },
   { pattern: "project-manager", reason: "use update-process-agent for plan/process sync" },
   { pattern: "docs/codebase-summary", reason: "use process/context/all-context.md routing" },
-  { pattern: "docs/design-guidelines", reason: "use process/context/uxui/uiux.md or feature references" },
+  { pattern: "docs/design-guidelines", reason: "use process/context/ui/ or relevant feature context references" },
   { pattern: "validate-docs", reason: "use audit-context validator" },
   { pattern: "process/context/<group>", reason: "placeholder should not look like a concrete ref" },
   { pattern: ".claude/commands/", reason: "Claude command aliases are retired from the active shared workflow surface" },
@@ -248,6 +253,7 @@ for (const file of staleWorkflowFiles) {
       ) {
         continue;
       }
+      if (pattern === "vc:plan" && /vc:plan-\w/.test(line)) continue;
       if (pattern === "docs-manager" && line.includes("not `./docs`")) continue;
       fail(`${file}:${index + 1} contains stale ${pattern} reference (${reason})`);
     }

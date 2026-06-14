@@ -105,7 +105,7 @@ Plan files with frontmatter:
   process/features/{feature}/completed/{slug}_{date}/{slug}_PLAN_{date}.md (plan:{plan-name} — short description...)
 
 Files without frontmatter (path only):
-  process/context/uxui/uiux.md
+  process/context/ui/design.md
 ```
 
 ## Context Envelope

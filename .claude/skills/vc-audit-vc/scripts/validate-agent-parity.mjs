@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 
-const root = process.cwd();
+const root = execSync('git rev-parse --show-toplevel').toString().trim();
 const strict = process.argv.includes("--strict");
 const failures = [];
 const warnings = [];

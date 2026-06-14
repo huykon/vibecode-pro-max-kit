@@ -1,12 +1,16 @@
 ---
-name: vc:publish
-description: Push agent harness improvements from the current development repo to the remote kit repository. Use when you want to publish local harness changes back to the shared kit. Diffs managed files, shows what changed, bumps version, and pushes.
+name: vc-publish
+description: Use when publishing harness improvements to the remote kit repo. Diffs managed files, shows what changed, bumps version, and pushes. Counterpart to vc-update (pull).
+trigger_keywords: publish kit, push harness, release kit, update remote
+layer: contract
 metadata:
   author: vibecode
   version: "2.0.0"
 ---
 
 # vc-publish
+
+> **Output style:** Follow `process/development-protocols/communication-standards.md` — answer-first, plain language, no unexplained jargon, TL;DR on long responses.
 
 Push harness improvements from the current development repo to the remote kit repository (`vibecode-pro-max-kit`). This is the **maintainer** counterpart to `vc-update`.
 
@@ -42,6 +46,13 @@ If this file is missing, ask the user for the kit repo checkout path and offer t
 
 5. Read `vc-manifest.json` from the kit repo checkout.
 6. Extract the current `version`.
+7. Before computing a version bump, check if the current kit version already matches the intended target version (e.g. `3.0.0`). If the kit `version` already equals the target: **skip the bump step entirely** and proceed directly to Step 3 with a `tag-as-is` note — do not increment the version. Record in the publish summary that the version was unchanged.
+
+**Catalog-regen (pre-publish):** Before resolving files in Steps 3–4, regenerate the skills catalog in the dev repo:
+```bash
+node .claude/skills/vc-audit-context/scripts/generate-skills-catalog.mjs --write
+```
+This ensures `process/context/generated-skills-catalog.json` is current before it is copied into the kit repo.
 
 ### Step 3: Resolve Both File Sets
 
@@ -178,6 +189,18 @@ Version bump semantics:
     grep -r "/Users/" .
     ```
 
+    **Check (c) -- README badge counts:** Verify the kit README.md badge counts match actual agent and skill counts:
+    ```bash
+    actual_agents=$(ls <kitRepoPath>/.claude/agents/*.md | wc -l | tr -d ' ')
+    actual_skills=$(ls <kitRepoPath>/.claude/skills/ | wc -l | tr -d ' ')
+    readme_agents=$(grep -oE '[0-9]+-Agents' <kitRepoPath>/README.md | grep -oE '[0-9]+')
+    readme_skills=$(grep -oE '[0-9]+-Skills' <kitRepoPath>/README.md | grep -oE '[0-9]+')
+    echo "Agents: actual=$actual_agents badge=$readme_agents"
+    echo "Skills: actual=$actual_skills badge=$readme_skills"
+    [ "$actual_agents" = "$readme_agents" ] && [ "$actual_skills" = "$readme_skills" ] && echo "PASS" || echo "FAIL: badge counts mismatch"
+    ```
+    If FAIL: update README.md badges to match actual counts before committing.
+
     NOTE: the brand grep matches product names ONLY. It does NOT match
     `.ck.json`/`.ckignore` -- those Phase-2 legacy-fallback literals are intentional
     and must NOT be flagged. Do not add `ck`/`ckignore` to any leak grep.
@@ -193,7 +216,7 @@ Version bump semantics:
 
 ### Step 9: Commit and Tag
 
-15. In the kit repo:
+15. In the kit repo. If the version was already at the target (skip-bump path from Step 2): use `tag-as-is` and commit with the existing version number. Otherwise: bump the version in `vc-manifest.json` and commit with the new version.
 
 ```bash
 cd <kitRepoPath>
@@ -228,7 +251,18 @@ git push origin main && git push --tags
     - The `--title` one-liner should be the first sentence of the notes (truncate at 72 chars if longer).
     - If `gh` is unavailable or the push to remote failed, skip this step and note it in the summary.
 
-### Step 12: Print Summary
+### Step 12: Post-Publish Remote Verify
+
+After a successful push, clone the kit from remote to a temp dir and verify the catalog works on a fresh install:
+```bash
+TS=$(date +%s)
+git clone <remote-kit-url> /tmp/vc-kit-verify-$TS
+node /tmp/vc-kit-verify-$TS/.claude/skills/vc-context-discovery/scripts/discover-skills.mjs 2>&1
+rm -rf /tmp/vc-kit-verify-$TS
+```
+Expected: exit 0 and expected skill count in output. If FAIL: note the error in the publish summary — the push succeeded but the remote install may have a catalog issue.
+
+### Step 13: Print Summary
 
 19. Print publish summary:
 

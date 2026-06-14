@@ -11,6 +11,7 @@
     "AGENTS.md",
     "process/development-protocols/**",
     "process/context/planning/example-*.md",
+    "process/context/generated-skills-catalog.json",
     "process/_seeds/**",
     "process/_seeds/**/.gitkeep",
     "process/_seeds/**/.gitignore",

@@ -48,8 +48,8 @@
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/graphs/contributors"><img src="https://img.shields.io/github/contributors/withkynam/vibecode-pro-max-kit" alt="Contributors"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/withkynam/vibecode-pro-max-kit/validate.yml" alt="CI"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/commits/main"><img src="https://img.shields.io/github/last-commit/withkynam/vibecode-pro-max-kit" alt="Last Commit"></a>
-  <img src="https://img.shields.io/badge/agents-12-orange" alt="Agents">
-  <img src="https://img.shields.io/badge/skills-32-purple" alt="Skills">
+  <img src="https://img.shields.io/badge/agents-15-orange" alt="Agents">
+  <img src="https://img.shields.io/badge/skills-33-purple" alt="Skills">
   <img src="https://img.shields.io/badge/tools-7_%E2%9C%93-38BDF8" alt="7 Tools">
 </p>
 
@@ -528,7 +528,7 @@ Walk away and come back to completed work.
 
 ### 🧬 Auto-Architecture Research — Learn From Any Codebase
 
-The agent doesn't just read your code — it **studies other repositories** to learn how they solved similar problems (`vc-xia`).
+The agent doesn't just read your code — it **studies other repositories** to learn how they solved similar problems.
 
 > 💡 It researches, compares approaches, and adapts the best patterns into your codebase. Architecture decisions are informed by real-world implementations, not hallucinated best practices.
 
@@ -648,8 +648,10 @@ The orchestrator **never does the work itself** — it routes, monitors, and man
 | Phase | What happens | You say |
 |-------|-------------|---------|
 | 🔍 **RESEARCH** | Read-only fact gathering — codebase + web | *(automatic on feature requests)* |
+| 📝 **SPEC** | Product-discovery requirements doc for user review | `go` or `ENTER SPEC MODE` |
 | 💡 **INNOVATE** | Explore 2-3 approaches with trade-offs | `go` |
 | 📋 **PLAN** | Write a detailed spec you can review | `go` |
+| ✅ **VALIDATE** | Convert plan to executable contract; gates must pass | `ENTER VALIDATE MODE` |
 | ⚡ **EXECUTE** | Implement exactly what was planned | `ENTER EXECUTE MODE` |
 | 🧠 **UPDATE PROCESS** | Capture learnings, update context, archive plan | *(recommended after non-trivial work)* |
 
@@ -793,7 +795,7 @@ Before a single line of code is written, the system can catch issues through spe
 <td width="50%" valign="top">
 <h1>👥</h1>
 <strong>Parallel Agent Teams</strong><br><br>
-<code>vc-team</code> — Multiple agents working <strong>simultaneously</strong> with git worktree isolation. Research in parallel, execute in parallel, review in parallel, debug adversarially.
+<code>vc-agent-strategy-compare</code> — Auto-selects execution strategy at every phase boundary: sequential, parallel subagents, workflow, or agent team. Research, plan, and execute with optimal coordination.
 </td>
 </tr>
 <tr>
@@ -1046,23 +1048,26 @@ process/features/{feature}/
 
 <br>
 
-### 12 Agents
+### 15 Agents
 
 <details>
-<summary>Click to expand agent list (12 agents)</summary>
+<summary>Click to expand agent list (15 agents)</summary>
 
 <br>
 
-**Core workflow agents** — one per RIPER-5 phase:
+**Core workflow agents** — one per RIPER-5 phase (R→SPEC→I→P→V→E→UP):
 
 | Agent | Role |
 |-------|------|
 | 🔍 `vc-research-agent` | Codebase + web research, read-only. Contradiction tracking built in |
+| 📝 `vc-spec-agent` | Product-discovery requirements doc before INNOVATE. Produces `*_SPEC_*.md` |
 | 💡 `vc-innovate-agent` | Brainstorm 2-3 approaches. Must produce decision summary before PLAN |
 | 📋 `vc-plan-agent` | Write spec with anti-rationalization guards. "I already know how" is not a plan |
+| ✅ `vc-validate-agent` | Convert plan to executable contract (V1–V7 gates). Gate: PASS/CONDITIONAL/BLOCKED |
 | ⚡ `vc-execute-agent` | Implement per plan. 50% check-in, deviation protocol, self-review |
 | ⏩ `vc-fast-mode-agent` | Compressed RESEARCH→INNOVATE→PLAN with mandatory safety pause |
 | 🧠 `vc-update-process-agent` | 7-phase mandatory checklist including stale artifact scanning |
+| 🔧 `vc-quick-fix-agent` | QUICK FIX lane: one small low-risk edit + scoped check, no plan/validate |
 
 <br>
 
@@ -1081,28 +1086,26 @@ process/features/{feature}/
 
 <br>
 
-### 31 Skills (auto-discovered)
+### 33 Skills (auto-discovered)
 
 <details>
-<summary>Click to expand skill list (31 skills)</summary>
+<summary>Click to expand skill list (33 skills)</summary>
 
 <br>
 
-**🔧 Contract skills** — `vc-generate-plan` · `vc-generate-context` · `vc-audit-context` · `vc-audit-plans` · `vc-audit-vc` · `vc-setup` · `vc-update` · `vc-publish`
+**🔧 Contract skills** — `vc-generate-plan` · `vc-generate-context` · `vc-generate-spec` · `vc-generate-closeout` · `vc-generate-phase-program` · `vc-audit-context` · `vc-audit-plans` · `vc-audit-vc` · `vc-setup` · `vc-update` · `vc-publish`
 
-**🧠 Planning** — `vc-predict` (5-persona debate) · `vc-scenario` (12-dimension edge cases) · `vc-sequential-thinking` · `vc-problem-solving`
+**🧠 Planning & validation** — `vc-predict` (5-persona debate) · `vc-scenario` (12-dimension edge cases) · `vc-sequential-thinking` · `vc-problem-solving` · `vc-feasibility-test` (empirical probes) · `vc-risk-evidence-pack` · `vc-test-coverage-plan` · `vc-validate-findings` · `vc-agent-strategy-compare` · `vc-intent-clarify` · `vc-plan-discovery` · `vc-review-situation`
 
 **🐛 Debug & security** — `vc-debug` · `vc-security` (STRIDE + OWASP + auto-fix) · `vc-autoresearch` (autonomous optimization)
 
-**📚 Research** — `vc-docs-seeker` · `vc-scout` · `vc-docs` · `vc-repomix` · `vc-xia` (repo comparison)
+**📚 Research** — `vc-docs-seeker` · `vc-scout`
 
-**🎨 Frontend** — `vc-frontend-design` · `vc-chrome-devtools` · `vc-agent-browser` · `vc-web-testing`
+**🎨 Frontend** — `vc-frontend-design` · `vc-agent-browser` · `vc-web-testing`
 
-**⚙️ Utilities** — `vc-context-engineering` · `vc-mcp-management` · `vc-preview` · `vc-team` (parallel agents) · `vc-tech-graph` · `vc-watzup` (session handoff) · `vc-merge-worktree`
+**⚙️ Automation** — `vc-autopilot` (autonomous RIPER-5 runs) · `vc-context-discovery`
 
 </details>
-
-> 💡 Some skills (like `vc-xia`) were inspired by [ClaudeKit](https://claudekit.cc/?ref=OEOM7R7G) by [@mrgoonie](https://github.com/mrgoonie). We focused on fewer, deeper skills instead of 80+.
 
 <br>
 

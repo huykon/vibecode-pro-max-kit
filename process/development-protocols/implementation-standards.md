@@ -1,3 +1,15 @@
+---
+name: protocol:implementation-standards
+description: "Durable implementation standards, file-size guidance, error-handling preferences, quality gates, and commit hygiene."
+date: 09-06-26
+metadata:
+  node_type: memory
+  type: protocol
+  read_order: 3
+  required: false
+  read_when: "writing or reviewing code — engineering standards and quality gates"
+---
+
 # Implementation Standards
 
 ## Core Principles
@@ -31,40 +43,25 @@
 ## Quality Gates
 
 - Ensure code is syntactically valid and compiles where applicable.
-- Run the most relevant tests for the change before calling work complete.
+- Run all fully-automated gates listed in the validate-contract (or all relevant test commands from `tests/all-tests.md` if no validate-contract exists). Fix failures. Re-run. Do not report DONE while a fully-automated gate fails in the blast radius of this plan.
+- Run hybrid gates per preconditions in the validate-contract. Record outcome. If failure may be caused by this plan's changes (not an unrelated external flake), fix and re-run before DONE.
+- Run agent probe gates listed in the validate-contract. Record outcome and agent judgment. Probe failure in the blast radius = investigate before DONE.
+- Iterate-until-green for fully-automated tiers; record outcomes for hybrid/probe tiers. "I ran it and it failed" is not DONE. DONE means green for all fully-automated gates in the blast radius.
 - Use code review or reviewer agents for meaningful implementation changes.
 - Do not wave away failing tests just to force a green status.
+- Read `process/context/all-context.md` AND run `find process/context/ -type f` to see every available file across all context groups. Follow the routing table to pick which files to actually load. Do not hardcode specific paths — the router plus full file listing is the stable contract.
+- At each implementation step, re-read the active plan file and any existing phase reports before starting work. Write new findings (gaps, test failures, plan deviations, context learnings) to the phase report before ending the step. This is how context survives compaction and informs upcoming phases.
 
 ## Risky Work Evidence Contract
 
-For high-risk work, use a manual-first evidence pack before calling the change ready for finalize, push, or human handoff.
-
-High-risk classes include:
-
-- auth or identity flows
-- billing, payments, or credit accounting
-- schema/data migrations or destructive writes
-- public API or external contract changes
-- deploy/runtime/container/proxy/gateway behavior
-- permission, secret, or trust-boundary logic
-
-Preferred artifact set in the selected plan's reports `harness/` folder:
-
-- `risk-gate.json`
-- `context-snippets.json`
-- `verification.json`
-- `review-decision.json`
-- `adversarial-validation.json` for high-risk or adversarial paths
-
-Auto-stop rule:
-
-- if risk is `high`, do not treat the work as ready to finalize until the evidence pack exists and the reviewer decision is recorded
-- if the evidence pack is missing, say so explicitly instead of implying the work is proven
-
-This contract is manual-first and opt-in by risk class. It is not a default blocking hook.
+See skill: invoke `vc-risk-evidence-pack` for the full 6-class definitions, 5-artifact schema, and auto-stop rule.
 
 ## Commit Hygiene
 
 - Keep commits focused on the requested change.
 - Never commit secrets or credentials.
 - Use clean professional commit messages, ideally conventional-commit style when it fits the change.
+- **Commit on `main` by default.** This repo's local default branch is `main`; commit directly to it
+  when the user asks for a commit. Do NOT create a feature branch first — this overrides the generic
+  "if on the default branch, branch first" harness default. Only branch when the user explicitly asks
+  for a feature branch or PR.

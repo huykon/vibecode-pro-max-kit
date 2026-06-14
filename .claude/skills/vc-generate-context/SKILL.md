@@ -1,12 +1,16 @@
 ---
-name: vc:generate-context
+name: vc-generate-context
 description: Generate or update the project's authoritative repository context at process/context/all-context.md. Use when repo context is missing, stale, or contradicted by code.
+trigger_keywords: generate context, update context, refresh context, missing context
+layer: contract
 metadata:
   author: flowser
   version: "1.0.0"
 ---
 
 # Generate Context
+
+> **Output style:** Follow `process/development-protocols/communication-standards.md` — answer-first, plain language, no unexplained jargon, TL;DR on long responses.
 
 Use this skill to maintain `process/context/all-context.md`, the broad portable project knowledge layer shared by Codex and Claude. Use `process/context/all-context.md` as the context router before reading grouped docs.
 

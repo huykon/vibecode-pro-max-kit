@@ -53,10 +53,10 @@ Inspect as relevant:
 - Tailwind and UI component setup.
 - `.env` usage patterns without exposing secrets.
 - `process/development-protocols/`, `AGENTS.md`, `.codex/agents/`, and `.agents/skills/` for workflow conventions.
-- `process/general-plans/active/*` and `process/features/*/active/*`.
+- `process/general-plans/active/*/` and `process/features/*/active/*/` (plans live inside `{slug}_{date}/` task subfolders — scan one level deep).
 - `process/context/all-context.md` for context routing and group ownership.
 - Existing `process/context/**/*.md` files, loading only relevant grouped docs.
-- `process/development-protocols/references/example-complex-prd.md` for plan/PRD depth expectations.
+- `.claude/skills/vc-generate-plan/references/example-complex-prd.md` for plan/PRD depth expectations.
 
 ## Full Scan Structure
 

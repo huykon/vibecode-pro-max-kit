@@ -98,8 +98,8 @@ if (!exists(guidePath)) {
     const skillFile = `.claude/skills/${folder}/SKILL.md`;
     const parsed = parseFrontmatter(skillFile);
     const name = parsed?.fields?.name || folder;
-    // Strip vc: prefix for matching (README.md uses folder names, not vc:-prefixed names)
-    const nameWithoutPrefix = name.startsWith("vc:") ? name.slice(3) : name;
+    // Strip vc- prefix for matching (README.md uses folder names, not vc--prefixed names)
+    const nameWithoutPrefix = name.startsWith("vc-") ? name.slice(3) : name;
     // Check if the skill folder name, frontmatter name, or stripped name appears in README.md
     if (!guideSkills.has(folder) && !guideSkills.has(name) && !guideSkills.has(nameWithoutPrefix)) {
       fail(`Skill ${folder} (name: ${name}) exists on disk but missing from README.md skill catalog`);
@@ -108,8 +108,8 @@ if (!exists(guidePath)) {
 
   // Check: every GUIDE.md skill should exist on disk
   for (const skill of guideSkills) {
-    // Also check vc:-prefixed variant (README.md may list "code-reviewer" which is an agent, not a skill folder)
-    if (!diskSkillFolders.has(skill) && !diskSkills.has(skill) && !diskSkills.has(`vc:${skill}`)) {
+    // Also check vc--prefixed variant (README.md may list "code-reviewer" which is an agent, not a skill folder)
+    if (!diskSkillFolders.has(skill) && !diskSkills.has(skill) && !diskSkills.has(`vc-${skill}`)) {
       warn(`Skill ${skill} listed in README.md but not found on disk`);
     }
   }

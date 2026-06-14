@@ -68,6 +68,10 @@ SYMLINKS_JSON=$(echo "$MANIFEST_JSON" | node -e "
   const d = JSON.parse(require('fs').readFileSync(0,'utf8'));
   for (const [k,v] of Object.entries(d.symlinks)) console.log(k + '|' + v);
 ")
+LEGACY_DELETIONS=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync(0,'utf8'));
+  (d.legacyDeletions || []).forEach(f => console.log(f));
+")
 
 # ══════════════════════════════════════════════════════
 # Backup existing setup (if any)
@@ -150,12 +154,49 @@ while IFS= read -r line; do
 done <<< "$SYMLINKS_JSON"
 
 # ══════════════════════════════════════════════════════
+# Apply legacyDeletions — remove deprecated skill dirs + protocol files
+# ══════════════════════════════════════════════════════
+if [ -n "$LEGACY_DELETIONS" ]; then
+  echo "  Removing deprecated paths (legacyDeletions)..."
+  DELETED_DIRS=()
+  while IFS= read -r legacy_path; do
+    [ -z "$legacy_path" ] && continue
+    if [ -d "$legacy_path" ]; then
+      rm -rf "$legacy_path"
+      echo "    removed dir: $legacy_path"
+      DELETED_DIRS+=("$legacy_path")
+    elif [ -f "$legacy_path" ]; then
+      rm -f "$legacy_path"
+      echo "    removed file: $legacy_path"
+      DELETED_DIRS+=("$(dirname "$legacy_path")")
+    fi
+  done <<< "$LEGACY_DELETIONS"
+  # Clean empty parent directories deepest-first
+  for dir in "${DELETED_DIRS[@]}"; do
+    parent="$dir"
+    while [ "$parent" != "." ] && [ "$parent" != "/" ]; do
+      parent=$(dirname "$parent")
+      [ -d "$parent" ] && rmdir "$parent" 2>/dev/null || true
+    done
+  done
+fi
+
+# ══════════════════════════════════════════════════════
 # Write snapshot + version
 # ══════════════════════════════════════════════════════
 echo "$FILES" | sort > .vc-installed-files
 echo "$VERSION" > .vc-version
 
 cleanup
+
+# ══════════════════════════════════════════════════════
+# Post-install self-check: verify discover-skills works
+# ══════════════════════════════════════════════════════
+if node .claude/skills/vc-context-discovery/scripts/discover-skills.mjs >/dev/null 2>&1; then
+  echo "  install.sh: discover-skills OK"
+else
+  echo "  Warning: discover-skills.mjs returned non-zero exit. Run manually to diagnose."
+fi
 
 # ══════════════════════════════════════════════════════
 # Summary
