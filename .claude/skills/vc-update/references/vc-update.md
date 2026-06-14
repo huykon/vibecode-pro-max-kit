@@ -31,7 +31,7 @@ The manifest uses glob-based patterns resolved by `resolve-manifest.mjs`.
     "**/.git/**",
     "**/.logs/**",
     ".codex/statusline.cjs",
-    ".claude/skills/vc-chrome-devtools/scripts/node_modules/**"
+    ".claude/skills/vc-agent-browser/scripts/node_modules/**"
   ],
   "strip": [],
   "merge": [".claude/settings.json"],

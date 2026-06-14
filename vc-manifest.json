@@ -1,5 +1,5 @@
 {
-  "version": "2.4.1",
+  "version": "3.0.0",
   "include": [
     ".claude/agents/**",
     ".claude/skills/**",
@@ -22,8 +22,7 @@
     "process/general-plans/**",
     "**/.git/**",
     "**/.logs/**",
-    ".codex/statusline.cjs",
-    ".claude/skills/vc-chrome-devtools/scripts/node_modules/**"
+    ".codex/statusline.cjs"
   ],
   "strip": [],
   "merge": [
@@ -47,5 +46,23 @@
     ".github/**",
     "resolve-manifest.mjs",
     "install.sh"
+  ],
+  "legacyDeletions": [
+    ".claude/skills/vc-team",
+    ".claude/skills/vc-chrome-devtools",
+    ".claude/skills/vc-docs",
+    ".claude/skills/vc-repomix",
+    ".claude/skills/vc-preview",
+    ".claude/skills/vc-merge-worktree",
+    ".claude/skills/vc-tech-graph",
+    ".claude/skills/vc-watzup",
+    ".claude/skills/vc-xia",
+    ".claude/skills/vc-mcp-management",
+    ".claude/skills/vc-context-engineering",
+    "process/development-protocols/references/example-complex-prd.md",
+    "process/development-protocols/references/example-simple-prd.md",
+    "process/development-protocols/intent-clarification.md",
+    "process/development-protocols/parallel-fan-out.md",
+    "process/development-protocols/archive/vc-system-behavior-reference_ARCHIVED_09-06-26.md"
   ]
 }

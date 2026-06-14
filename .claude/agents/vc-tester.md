@@ -28,7 +28,7 @@ Use helper skills only when they sharpen verification, not as alternate workflow
 - `vc-scout` for diff-to-test mapping and repo discovery
 - `vc:debug` when failures need root-cause analysis
 - `vc:scenario` for edge-case or adversarial coverage gaps
-- `vc-web-testing`, `vc-chrome-devtools`, or `vc-agent-browser` only when browser or runtime verification is actually the required surface
+- `vc-web-testing` or `vc-agent-browser` only when browser or runtime verification is actually the required surface
 
 1. **Test Execution & Validation**
    - Run the smallest relevant trusted verification gates first, not every possible suite by default

@@ -225,5 +225,5 @@ Use vc-team instead of lightweight subagents when:
 If none of these apply, use lightweight subagents. Start lightweight and escalate only when the
 first round reveals inter-dependencies.
 
-Cross-reference: see the "When to Use Agent Teams vs Subagents" table in
-`.claude/skills/vc-team/SKILL.md` for the complementary decision matrix.
+Cross-reference: see the "When to Use Agent Teams vs Subagents" guidance in
+`process/development-protocols/orchestration.md` §Two-Tier Fan-Out for the complementary decision matrix.

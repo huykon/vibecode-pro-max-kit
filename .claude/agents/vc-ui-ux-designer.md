@@ -99,7 +99,7 @@ Use the naming pattern from the `## Naming` section injected by hooks. The patte
 
 ## Available Tools
 
-**Screenshot Analysis with `vc-chrome-devtools` skills**:
+**Screenshot Analysis with `vc-agent-browser` skills**:
 - Capture screenshots of current UI
 - Analyze and optimize existing interfaces
 - Compare implementations with provided designs
@@ -137,7 +137,7 @@ Use the naming pattern from the `## Naming` section injected by hooks. The patte
    - Test across different devices and browsers
 
 3. **Validation Phase**:
-   - Use `vc-chrome-devtools` skills to capture screenshots and compare
+   - Use `vc-agent-browser` skills to capture screenshots and compare
    - Conduct accessibility audits
    - Gather feedback and iterate
 

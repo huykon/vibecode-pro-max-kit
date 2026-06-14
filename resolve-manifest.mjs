@@ -292,6 +292,7 @@ function resolveGlob() {
           copyIfMissing: copyIfMissingResolved,
           strip: stripList,
           symlinks: symlinkMap,
+          legacyDeletions: manifest.legacyDeletions || [],
         },
         null,
         2,
