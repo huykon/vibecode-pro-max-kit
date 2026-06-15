@@ -197,8 +197,13 @@ node "$VC_UPDATE_TMPDIR/compute-sync-plan.mjs" \
       const src = path.join(root, rel);
       if (!fs.existsSync(src)) continue;
       const dst = path.join(process.env.PROJECT_ROOT, '.vibecode-backup', rel);
-      fs.mkdirSync(path.dirname(dst), { recursive: true });
-      fs.copyFileSync(src, dst);
+      const stat = fs.statSync(src);
+      if (stat.isDirectory()) {
+        fs.cpSync(src, dst, { recursive: true });
+      } else {
+        fs.mkdirSync(path.dirname(dst), { recursive: true });
+        fs.copyFileSync(src, dst);
+      }
     }
   "
 # Note: this backup step assumes a POSIX shell. On Windows, skip or adapt it — /dev/stdin is unavailable.
