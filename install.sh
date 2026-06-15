@@ -121,6 +121,21 @@ OWNED_PATHS=$(echo "$MANIFEST_JSON" | node -e "
   const d = JSON.parse(require('fs').readFileSync(0,'utf8'));
   (d.ownedPaths || []).forEach(f => console.log(f));
 ")
+MISSING_DECLARED=$(echo "$MANIFEST_JSON" | node -e "
+  const d = JSON.parse(require('fs').readFileSync(0,'utf8'));
+  (d.missingDeclared || []).forEach(f => console.log(f));
+")
+
+# ── Kit-integrity guard: warn when manifest-declared files are absent from source ──
+if [ -n "$MISSING_DECLARED" ]; then
+  echo -e "  ${YELLOW}⚠ WARNING: kit integrity issue — declared files missing from kit source:${NC}" >&2
+  while IFS= read -r mdf; do
+    [ -z "$mdf" ] && continue
+    echo -e "    ${YELLOW}missing:${NC} $mdf" >&2
+  done <<< "$MISSING_DECLARED"
+  echo -e "  ${YELLOW}  → kit may be a partial/corrupted clone — re-clone the kit before relying on this install${NC}" >&2
+  echo "" >&2
+fi
 
 # ══════════════════════════════════════════════════════
 # Read prior installed-files snapshot (before backup)
