@@ -375,7 +375,7 @@ function applyPlan(plan, projectRoot, kitRoot, ownedPaths, version, managedFiles
       console.log(`  Added ${backupPattern} to .gitignore (created)`);
     } else {
       const existing = fs.readFileSync(gitignorePath, 'utf8');
-      const alreadyPresent = existing.split('\n').some(line => line.trim().includes('.vibecode-backup'));
+      const alreadyPresent = existing.split('\n').some(line => line.trim().includes('.vibecode-backup*'));
       if (!alreadyPresent) {
         const withNewline = existing.endsWith('\n') ? existing : existing + '\n';
         fs.writeFileSync(gitignorePath, withNewline + backupPattern + '\n', 'utf8');
