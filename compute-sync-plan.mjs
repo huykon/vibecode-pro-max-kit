@@ -67,7 +67,7 @@ export default function computeSyncPlan(opts) {
   let priorSnapshot = [];
   try {
     const raw = fs.readFileSync(snapshotPath, 'utf8');
-    priorSnapshot = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    priorSnapshot = [...new Set(raw.split('\n').map(l => l.trim()).filter(Boolean))];
   } catch {
     // No prior snapshot — first install or pre-snapshot install
   }
