@@ -245,9 +245,9 @@ Verify the setup is complete, correct, and populated with real content.
    - `all-tests.md` has actual test commands (not placeholder text)
    - Context groups created have corresponding entries in the routing tables
    - Feature folders created have `_GUIDE.md` files with real scope descriptions
-5. **Placeholder scan (required):** grep the populated `all-*.md` context files for remaining `<!-- STUDY:` or `(pending` markers. If any remain, STUDY is incomplete — return to STUDY and populate them before declaring VALIDATE done.
+5. **Placeholder scan (required):** grep the populated `all-*.md` context files for remaining `<!-- STUDY:` or `(pending` markers. If any remain, STUDY is incomplete — return to STUDY and populate them before declaring VALIDATE done. The `--include` / `--exclude` flags restrict the scan to live `.md` docs and skip `.seed` companion files (which legitimately contain these markers as reference templates).
    ```bash
-   grep -rn -e '<!-- STUDY:' -e '(pending' process/context/ && echo 'INCOMPLETE — populate before VALIDATE'
+   grep -rn --include="*.md" --exclude="*.seed" -e '<!-- STUDY:' -e '(pending' process/context/ && echo 'INCOMPLETE — populate before VALIDATE'
    ```
    A zero-match exit (no output, exit 1 from grep) means the scan is clean and VALIDATE may proceed.
 6. **Catalog generate-on-install safety check:** If `process/context/generated-skills-catalog.json` is absent after setup, generate it now:
@@ -261,6 +261,8 @@ Verify the setup is complete, correct, and populated with real content.
    - `node .claude/skills/vc-audit-context/scripts/validate-context-discovery.mjs`
 
    **Validator cwd discipline:** Run every validator from the project root: `cd {project_root} && node .claude/skills/...`. The scripts resolve the project via `git rev-parse --show-toplevel`; running from a parent directory resolves the wrong root and produces misleading results.
+
+   **Expected warnings from `validate-all-context.mjs` on brand-new projects:** On a fresh project, this validator will emit up to 3 warnings that require NO action — missing git HEAD (the project has no commits yet), missing source-references section, and missing open-questions section. These resolve automatically as the project ships its first features and context files are filled in. Do not treat them as setup failures.
 
    **Expected validator warnings on fresh projects:** Run `validate-context-discovery.mjs` ONLY after STUDY finishes. Before STUDY creates the tests/all-tests.md and planning/all-planning.md files under process/context/, expect 80+ concrete-ref failures from the agent prompt files (`.claude/agents/*.md` and `.codex/agents/*.toml` reference those paths) — these are EXPECTED until STUDY completes, not real errors. After STUDY, `validate-context-discovery.mjs` may still report missing context group directories such as `process/context/uxui/` (if the project has a UI/UX context group) or other groups. This is EXPECTED for projects that do not have content in those domains — do not create empty group directories just to silence the warning. Create a context group only when the project genuinely has substantial content for that domain (see Context Group Detection Table in the STUDY phase).
 

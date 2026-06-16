@@ -46,6 +46,7 @@ Or invoke the skill directly in any Claude Code session that has access to the k
 After `vc-update` completes, run the core validators to confirm green:
 
 ```bash
+# Run these from your project root (not a subdirectory or parent monorepo).
 node .claude/skills/vc-audit-vc/scripts/validate-agent-parity.mjs
 node .claude/skills/vc-audit-vc/scripts/validate-skills.mjs
 node .claude/skills/vc-audit-vc/scripts/validate-kit-portability.mjs
@@ -81,6 +82,8 @@ vc-setup detects an existing project (Flow B / Merge mode) and:
 2. Waits for your approval before moving anything.
 3. Migrates flat `*_PLAN_*.md` files in `active/` into `{slug}_{date}/` task
    folders, moving completed plans to `completed/` and active ones to `active/`.
+   Also normalizes ISO-format date folders to the canonical `dd-mm-yy` format
+   (e.g. `something_2025-01-01/` → `something_01-01-25/`).
 4. Notes any `reports/` or `references/` sibling dirs — these are not
    auto-migrated. Move their contents into the nearest task folder manually, or
    leave them in place (they are read-only legacy artifacts and do not break the
@@ -95,6 +98,7 @@ task-folder convention.
 Run the four core structural validators after the upgrade and after any layout migration:
 
 ```bash
+# Run these from your project root (not a subdirectory or parent monorepo).
 node .claude/skills/vc-audit-vc/scripts/validate-agent-parity.mjs
 node .claude/skills/vc-audit-vc/scripts/validate-skills.mjs
 node .claude/skills/vc-audit-vc/scripts/validate-kit-portability.mjs
