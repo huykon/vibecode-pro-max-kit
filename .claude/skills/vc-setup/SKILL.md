@@ -60,7 +60,7 @@ Gather information about the target project before making any changes.
 
 1. **Non-JS projects:** if the detected manifest is NOT `package.json` (e.g. `go.mod`, `pyproject.toml`, `Cargo.toml`, `Gemfile`), SKIP the Package Manager / Framework / Test-Setup detection steps below and jump to Manifest Detection in `references/vc-setup.md` §DETECT Phase.
 2. Read `package.json` to detect the package manager (`packageManager` field, lockfile presence), framework (dependencies), and test commands (scripts).
-3. Detect monorepo structure: `workspaces` in `package.json`, `pnpm-workspace.yaml`, `apps/`, `packages/` directories.
+3. Detect monorepo structure: `workspaces` in `package.json`, `pnpm-workspace.yaml`, `apps/`, `packages/` directories. (non-JS projects: skip the `workspaces in package.json` check; use the other signals — `pnpm-workspace.yaml`, `apps/`, `packages/` — as applicable)
 4. Scan for existing `process/`, `docs/`, `.github/` directories and any context files.
 5. **Classify the project** as one of:
    - **New**: no existing `process/` directory, no `all-context.md`, no meaningful prior setup.
@@ -69,7 +69,7 @@ Gather information about the target project before making any changes.
    **Classification corner cases (full 7-row table in `references/vc-setup.md` §Project Classification):**
    - `process/` contains ONLY kit-installed files (`_seeds/`, `development-protocols/`, `context/generated-skills-catalog.json`) and no user content → **New / Flow A** (install.sh ran but the user hasn't set up yet).
    - `all-context.md` exists but its non-comment body is all placeholder/stub (`<!-- STUDY: -->`) → **Flow A**, continue to STUDY (do NOT treat as existing project).
-5. Present a detection summary to the user and wait for confirmation before proceeding.
+6. Present a detection summary to the user and wait for confirmation before proceeding.
 
 **After detection, the workflow branches based on project type.** See the two flows below.
 
@@ -259,7 +259,7 @@ Verify the setup is complete, correct, and populated with real content.
 
    **Validator cwd discipline:** Run every validator from the project root: `cd {project_root} && node .claude/skills/...`. The scripts resolve the project via `git rev-parse --show-toplevel`; running from a parent directory resolves the wrong root and produces misleading results.
 
-   **Expected validator warnings on fresh projects:** `validate-context-discovery.mjs` may report missing context group directories such as process/context/uxui/ (if project has UI/UX context group) or other groups. This is EXPECTED for projects that do not have content in those domains — do not create empty group directories just to silence the warning. Create a context group only when the project genuinely has substantial content for that domain (see Context Group Detection Table in the STUDY phase).
+   **Expected validator warnings on fresh projects:** Run `validate-context-discovery.mjs` ONLY after STUDY finishes. Before STUDY creates `process/context/tests/all-tests.md` and `process/context/planning/all-planning.md`, expect 80+ concrete-ref failures from the agent prompt files (`.claude/agents/*.md` and `.codex/agents/*.toml` reference those paths) — these are EXPECTED until STUDY completes, not real errors. After STUDY, `validate-context-discovery.mjs` may still report missing context group directories such as `process/context/uxui/` (if the project has a UI/UX context group) or other groups. This is EXPECTED for projects that do not have content in those domains — do not create empty group directories just to silence the warning. Create a context group only when the project genuinely has substantial content for that domain (see Context Group Detection Table in the STUDY phase).
 
 **Present the final summary** to the user: what was set up, what is ready to use, and recommended next steps (review context, start using the harness).
 

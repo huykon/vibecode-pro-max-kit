@@ -74,8 +74,10 @@ if (exists(contextFile)) {
     fail(`${contextFile} appears to contain a secret-like value`);
   }
 
+  // Strip HTML comments before scanning concrete refs to avoid false-warns on commented examples
+  const textForRefs = text.replace(/<!--[\s\S]*?-->/g, "");
   const concreteRefs = [];
-  for (const match of text.matchAll(/`((?:apps|packages|process|\.claude|\.codex|\.agents)\/[^`\s]+)`/g)) {
+  for (const match of textForRefs.matchAll(/`((?:apps|packages|process|\.claude|\.codex|\.agents)\/[^`\s]+)`/g)) {
     const ref = match[1].replace(/[.,;:]$/, "");
     if (/[{}[*\]]/.test(ref)) continue;
     concreteRefs.push(ref);
