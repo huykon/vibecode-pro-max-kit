@@ -843,6 +843,7 @@
         "references/vc-setup.md"
       ],
       "mentionedSkills": [
+        "vc-generate-context",
         "vc-update"
       ]
     },

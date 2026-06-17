@@ -216,9 +216,9 @@ This is the core value -- instead of leaving placeholder text, the STUDY phase a
 
 1. **Architecture and stack analysis**: Scan source directories, detect frameworks with versions, map import aliases, catalog environment variables, identify key patterns and conventions.
 2. **Test setup analysis**: Identify test runners, config files, test directories, and test commands per package/workspace.
-3. **Context group detection**: Scan for project signals (database, auth, CI/CD, containers, UI systems, workflows) and create context groups where the project has substantial content.
+3. **Context group detection and per-group file authoring**: Invoke the `vc-generate-context` skill in `setup-delegation` mode. Pass: (a) the approved-groups list from the context-group-detector subagent (Round 1 Subagent C), and (b) mode = `setup-delegation`. This skill will produce all `process/context/{group}/all-{group}.md` files for the approved groups. See `.claude/skills/vc-generate-context/SKILL.md` for the Invocation Modes reference and `.claude/skills/vc-generate-context/references/generate-context.md` for the detection table and per-mode instructions.
 4. **Feature area detection**: Identify major product areas from route groups, packages, and existing docs. Create feature folders for areas meeting the threshold (3+ source files, distinct product area).
-5. **Populate all-context.md**: Write real repository structure, technology stack details, key patterns, environment configuration, and routing tables -- not placeholders. Incorporate what the user told you in the ASK step.
+5. **Populate all-context.md**: Write real repository structure, technology stack details, key patterns, environment configuration, and routing tables -- not placeholders. Incorporate what the user told you in the ASK step. Note: per-group context-file authoring (`process/context/{group}/all-{group}.md`) is delegated to `vc-generate-context` (step 3 above); `all-context.md` itself is Subagent E's responsibility and is authored here in vc-setup.
 6. **Populate all-tests.md**: Write actual test runner names, real test commands, and per-package breakdowns.
 7. **Migration intelligence** (when existing process/ content is found): Read existing content, identify gaps vs fresh scan, fill only gaps while preserving user-written content.
 

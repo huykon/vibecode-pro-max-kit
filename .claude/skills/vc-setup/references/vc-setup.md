@@ -492,7 +492,7 @@ Spawn up to 4 parallel subagents. Each writes to a distinct set of files with no
 |----------|----------|-----------|
 | E: all-context.md Writer | Findings from A + C + user answers | `process/context/all-context.md` |
 | F: all-tests.md Writer | Findings from B | `process/context/tests/all-tests.md` |
-| G: Context Group Scaffolder | Findings from C | `process/context/{group}/all-{group}.md` for each group |
+| G: vc-generate-context (delegation) | Findings from C (approved-groups list) | DELEGATION: invoke `vc-generate-context` skill in `setup-delegation` mode, passing the approved-groups list from Subagent C. Context-group detection and per-group file authoring is owned by `vc-generate-context` — see `.claude/skills/vc-generate-context/references/generate-context.md` for the detection table and per-mode instructions. |
 | H: Feature Folder Scaffolder | Findings from D + user answers | `process/features/{feature}/` dirs + `_GUIDE.md` files |
 
 Wait for all Round 2 subagents to complete. Proceed to VALIDATE.
@@ -536,17 +536,7 @@ The agent (or Subagent A) must scan and document:
 
 ### Context Group Detection Table
 
-| Project Signal | Context Group | all-*.md Content |
-|---|---|---|
-| Prisma/Drizzle/TypeORM/Sequelize + DB config | `database/` | Schema location, migration commands, client setup, key models |
-| Docker/Dockerfile/docker-compose present | `container/` | Image structure, services, ports, build commands |
-| Auth dependency (Clerk/NextAuth/Auth.js/Passport/Lucia) | `auth/` | Provider, config location, protected routes pattern |
-| CI/CD config (.github/workflows, .circleci, .gitlab-ci) | `cicd/` | Pipeline stages, deployment targets, required secrets |
-| Infrastructure code (terraform, pulumi, CDK, SST) | `infra/` | Provider, resource types, deployment commands |
-| 3+ UI component directories or design system | `uxui/` | Component library, styling approach, design tokens |
-| Workflow/queue system (BullMQ, Temporal, Inngest, etc.) | `workflows/` | Queue config, worker setup, job types |
-
-**Rule:** Only create a group when the project has SUBSTANTIAL content for it -- at minimum 2+ source files dedicated to that domain. A single config file is not enough.
+Context Group Detection Table: see `.claude/skills/vc-generate-context/references/generate-context.md` section "Context Group Detection Table" for the canonical detection signals, group names, and creation rules. That file is the single source of truth for group detection — do not duplicate the table here.
 
 ### Feature Detection Heuristics
 
