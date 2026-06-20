@@ -1,5 +1,5 @@
 {
-  "version": "3.2.1",
+  "version": "3.2.2",
   "include": [
     ".claude/agents/**",
     ".claude/skills/**",
@@ -80,7 +80,6 @@
     "process/development-protocols/archive/vc-system-behavior-reference_ARCHIVED_09-06-26.md",
     "process/general-plans/reports",
     "process/general-plans/references",
-    "process/development-protocols/references",
     "process/_seeds/features/_feature-template/reports",
     "process/_seeds/features/_feature-template/references",
     "process/_seeds/general-plans/reports",

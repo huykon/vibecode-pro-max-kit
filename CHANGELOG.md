@@ -2,6 +2,13 @@
 
 All notable changes to vibecode-pro-max-kit are documented in this file.
 
+## [3.2.2] - 2026-06-20
+
+### Fixed
+
+- `legacyDeletions` self-contradiction removed: the ledger carried both the bare directory `process/development-protocols/references` AND the live, shipped file `process/development-protocols/references/program-goal-charter-template.md` underneath it. On `vc-update`/install the bare-dir deletion would recursively wipe the directory — destroying the charter template that `all-development-protocols.md` references. The bare-dir entry is dropped (ledger 23→22); the two genuinely-dead PRD files under that path remain individually listed, so the template survives an upgrade while the dead files are still cleaned up.
+- Shipped the missing `validate-agent-frontmatter.mjs` validator. The agent-frontmatter behavior validator existed in the development harness and is referenced by the audit suite, but a prior publish never copied it into the kit — so no install or `vc-update` could ever run it. It is now part of the kit's `.claude/skills/vc-audit-vc/scripts/` set.
+
 ## [3.2.1] - 2026-06-20
 
 ### Fixed
