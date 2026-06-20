@@ -144,7 +144,45 @@ Version bump semantics:
          - Absolute paths (`/Users/...`)
          - Product name references (the project's product name and repo/directory name)
       5. Verify the result is harness-only methodology with no project leaks.
-    - Update `vc-manifest.json`: bump `version` field per the chosen bump type. **No other manifest changes needed** -- glob patterns are stable, new files are automatically included.
+    - **Manifest reconciliation** (`vc-manifest.json`) — the manifest is NOT a normally-copied
+      managed file (it is dev-only on one side and kit-resolved on the other), so its fields do
+      NOT auto-sync. Handle it explicitly:
+      1. **`version`**: bump per the chosen bump type. Kit-authoritative.
+      2. **`legacyDeletions`** (the deprecation ledger): **dev is authoritative and always the
+         superset.** Whenever dev removes a skill/dir/file from the harness it appends the path
+         here so downstream projects clean it up on their next `vc-update`. Set
+         `kit.legacyDeletions = dev.legacyDeletions` (preserve dev order). This field is a literal
+         path array, NOT a glob — it genuinely changes every time the harness deprecates something,
+         so it MUST be reconciled at every publish. (Historically this was skipped, which silently
+         stranded the kit with stale deletions — never skip it.)
+      3. **All OTHER non-version fields** (`include`, `exclude`, `strip`, `merge`, `copyIfMissing`,
+         `symlinks`, `kitOnly`): these legitimately diverge — the kit carries packaging-only rules
+         (e.g. excluding `**/*.test.mjs` and `__tests__/**` so tests are not shipped to users;
+         `kitOnly` tooling like `compute-sync-plan.mjs`). **Do NOT blindly overwrite them** — a
+         blanket dev→kit copy would strip the kit's test-excludes and ship test files. Instead run
+         the **field-level drift report** below and reconcile any unexpected drift by hand.
+
+      Drift-report command (run during Step 4 summary AND here before writing):
+      ```bash
+      node -e '
+      const d=require("<devRepoPath>/vc-manifest.json");
+      const k=require("<kitRepoPath>/vc-manifest.json");
+      let drift=0;
+      for(const key of new Set([...Object.keys(d),...Object.keys(k)])){
+        if(key==="version") continue;
+        if(JSON.stringify(d[key])!==JSON.stringify(k[key])){
+          drift++;
+          console.log("DRIFT field:",key);
+          console.log("  dev:",JSON.stringify(d[key]));
+          console.log("  kit:",JSON.stringify(k[key]));
+        }
+      }
+      console.log(drift?("\n"+drift+" manifest field(s) drift — legacyDeletions auto-syncs dev→kit; reconcile the rest consciously."):"manifest in sync (besides version)");
+      '
+      ```
+      `legacyDeletions` appearing in the drift report is EXPECTED and is auto-resolved (dev→kit).
+      Any OTHER field in the report is a conscious decision: confirm the kit value is the intended
+      packaging rule, or update dev/kit so they converge. Never let a drift go unexamined.
     - Create symlinks if missing (`.agents/skills -> ../.claude/skills`).
 
 ### Step 8: Leak Detection
@@ -308,7 +346,14 @@ Release:       https://github.com/<owner>/<repo>/releases/tag/v2.2.0
 
 ## Key Changes from v1.0
 
-- **No manifest array maintenance.** The glob patterns in `include`/`exclude`/`kitOnly` are stable. Adding a new skill or agent requires zero manifest edits. The only manifest change at publish time is the version bump.
+- **Glob arrays are stable; the deprecation ledger is not.** The glob patterns in
+  `include`/`exclude`/`kitOnly` are stable — adding a new skill or agent requires zero manifest
+  edits (new files are auto-included by the globs). BUT `legacyDeletions` is a literal path array,
+  not a glob: it grows every time the harness deprecates a skill/dir/file, and it MUST be
+  reconciled dev→kit at every publish (see Step 7 Manifest reconciliation). Skipping it strands
+  the kit with a stale deletion ledger so downstream `vc-update`s never clean up the newly
+  deprecated dirs. So publish-time manifest edits are: (1) version bump, (2) `legacyDeletions`
+  sync, (3) conscious reconciliation of any other field flagged by the drift report.
 - **Resolver-driven diffing.** The kit repo is resolved via `resolve-manifest.mjs` (which requires `vc-manifest.json` in its `--root`). The dev-side file comparison is handled inside `compute-sync-plan.mjs`, which reads the manifest from `--kit-root` (always the kit checkout). Dev repos do not carry `vc-manifest.json`.
 - **No `managed`/`managedDirs` arrays to update.** The old workflow of adding new files to these arrays is eliminated.
 

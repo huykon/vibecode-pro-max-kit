@@ -1,5 +1,5 @@
 {
-  "version": "3.2.0",
+  "version": "3.2.1",
   "include": [
     ".claude/agents/**",
     ".claude/skills/**",
@@ -77,6 +77,13 @@
     "process/development-protocols/references/example-simple-prd.md",
     "process/development-protocols/intent-clarification.md",
     "process/development-protocols/parallel-fan-out.md",
-    "process/development-protocols/archive/vc-system-behavior-reference_ARCHIVED_09-06-26.md"
+    "process/development-protocols/archive/vc-system-behavior-reference_ARCHIVED_09-06-26.md",
+    "process/general-plans/reports",
+    "process/general-plans/references",
+    "process/development-protocols/references",
+    "process/_seeds/features/_feature-template/reports",
+    "process/_seeds/features/_feature-template/references",
+    "process/_seeds/general-plans/reports",
+    "process/_seeds/general-plans/references"
   ]
 }

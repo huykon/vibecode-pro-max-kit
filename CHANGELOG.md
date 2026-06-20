@@ -2,6 +2,17 @@
 
 All notable changes to vibecode-pro-max-kit are documented in this file.
 
+## [3.2.1] - 2026-06-20
+
+### Fixed
+
+- `legacyDeletions` ledger now actually shipped: the kit was stranded at 16 entries while v3.2.0's changelog advertised 23. The 7 deprecated `reports/`/`references/` stale-dir paths (`process/general-plans/reports`, `process/general-plans/references`, `process/development-protocols/references`, and 4 `_seeds` reports/references paths) are now present, so a downstream `vc-update` will clean them up as intended.
+- `AGENTS.md` task-folder convention propagated: the kit's `AGENTS.md` still taught the deprecated `reports/`/`references/` sibling-dir layout (instructing agents to *create* those dirs). It now describes the task-folder convention and safe legacy-dir migration, matching the seed guides and `vc-setup`/`vc-update`.
+
+### Changed
+
+- `vc-publish` no longer silently drops non-version manifest fields. The publish flow now reconciles `vc-manifest.json` explicitly: `version` is bumped, `legacyDeletions` (the deprecation ledger — a literal path array, not a glob) is auto-synced dev→kit every publish, and all other fields run through a field-level drift report so packaging deltas (test-file excludes, kit-only tooling) are reconciled consciously instead of silently desyncing. This is the root-cause fix for the two misses above.
+
 ## [3.2.0] - 2026-06-20
 
 ### Added

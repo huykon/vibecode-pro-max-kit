@@ -42,7 +42,7 @@ The `--json` output provides all metadata needed for diffing:
 }
 ```
 
-**Key change from v1.0:** The publish step no longer needs to update `managed`/`managedDirs` arrays in the manifest. Glob patterns are stable -- new files are automatically included. The only manifest edit at publish time is the version bump.
+**Key change from v1.0:** The publish step no longer needs to update `managed`/`managedDirs` arrays in the manifest. Glob patterns (`include`/`exclude`/`kitOnly`) are stable -- new files are automatically included. Manifest edits at publish time are: (1) version bump, (2) `legacyDeletions` sync dev→kit (the deprecation ledger is a literal path array, NOT a glob -- it grows on every harness deprecation and must be reconciled every publish), and (3) conscious reconciliation of any other field flagged by the Step 7 drift report. Do NOT blanket-copy the dev manifest over the kit's -- the kit carries packaging-only deltas (test-file excludes, kit-only tooling) that must survive.
 
 ## CLAUDE.md / AGENTS.md Content Stripping
 

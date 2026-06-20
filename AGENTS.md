@@ -212,20 +212,22 @@ Feature-scoped storage for large feature clusters. Each feature folder contains:
 - `active/` - In-progress plans
 - `completed/` - Archived completed plans
 - `backlog/` - Deferred/future plans
-- `reports/` - Feature-specific operational reports
-- `references/` - Feature-specific research and reference documents
+
+Task-folder convention:
+- Reports, references, specs, and plans live inside the task folder under `active/` or `completed/`
+- Legacy sibling `reports/` and `references/` dirs may still appear during migration, but `vc-setup` and `vc-update` should migrate safe cases into task folders and remove emptied legacy dirs
 
 See `process/context/all-context.md` for current feature list.
 
-Routing rule: When a feature has 5+ artifacts, store new plans/reports in
-`process/features/{feature}/`. General or cross-cutting items go in
-`process/general-plans/` with `reports/` and `references/` inside.
+Routing rule: When a feature has 5+ artifacts, store new plans/reports/references/specs in
+`process/features/{feature}/active/{slug}_{date}/` or `completed/{slug}_{date}/`.
+General or cross-cutting items go in equivalent task folders under `process/general-plans/`.
 
 When routing to a subagent for a feature-scoped task, include `Feature: {feature-name}` in
 the prompt and override paths:
 
-- `Reports: {work_context}/process/features/{feature}/reports/`
 - `Plans: {work_context}/process/features/{feature}/active/`
+- When the selected task folder is known, pass that exact `active/{slug}_{date}/` or `completed/{slug}_{date}/` path as the authoritative artifact location
 
 #### Feature Folder Lifecycle
 
@@ -242,8 +244,8 @@ At plan creation time, use this decision logic:
 
 Promotion protocol from general to feature folder:
 
-1. Create `process/features/{new-feature}/` with subdirs: `active/`, `completed/`, `backlog/`, `reports/`, `references/`
-2. Move related artifacts from `process/general-plans/`, including reports and references, into the new feature's subdirs
+1. Create `process/features/{new-feature}/` with subdirs: `active/`, `completed/`, `backlog/`
+2. Move related artifacts from `process/general-plans/` into the new feature's task folders; migrate safe legacy `reports/` and `references/` artifacts into those task folders and remove emptied legacy dirs
 3. Update the Current features list above
 4. Inform subagents of the new feature scope going forward
 
@@ -251,15 +253,12 @@ Feature list maintenance: The Current features list above must be updated whenev
 feature folder is created or an empty one is removed. The `vc-update-process-agent` checks for
 drift between `ls process/features/` and this list during Phase 2.
 
-### `process/general-plans/reports/`
+### Legacy sibling dirs
 
-General/cross-cutting operational reports. Feature-specific reports live in
-`process/features/{feature}/reports/`.
-
-### `process/general-plans/references/`
-
-General/cross-cutting research outputs. Feature-specific references live in
-`process/features/{feature}/references/`.
+`process/general-plans/reports/`, `process/general-plans/references/`,
+`process/features/{feature}/reports/`, and `process/features/{feature}/references/`
+are deprecated legacy surfaces. They should be drained into task folders when safe and
+removed once empty.
 
 When routing to subagents, always pass relevant `process/context/` files. As new context
 files are added, for example UI patterns or deployment procedures, agents automatically benefit.
