@@ -2,6 +2,12 @@
 
 All notable changes to vibecode-pro-max-kit are documented in this file.
 
+## [3.2.5] - 2026-06-21
+
+### Docs
+
+- **Windows install guidance.** Users running the `curl … install.sh | bash` one-liner in PowerShell/`cmd.exe` hit an immediate failure because the installer is a bash script. The script itself already supports Windows shells (it detects `OSTYPE=msys*`/`cygwin*`/WSL, falls back from symlinks to copying when Developer Mode is off, and `.gitattributes` enforces `eol=lf` so shebangs never CRLF-corrupt) — the gap was purely documentation: the README listed only `macOS / Linux / WSL` and never mentioned **Git Bash**, which ships with Git for Windows and runs the existing command as-is. Added an explicit Windows section to the install prerequisites: run inside Git Bash or WSL (not PowerShell/cmd), with a note that symlink → copy fallback is automatic and Developer Mode enables true symlinks. No script changes.
+
 ## [3.2.4] - 2026-06-20
 
 ### Fixed

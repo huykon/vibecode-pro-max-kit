@@ -88,7 +88,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/withkynam/vibecode-pro-max-kit" alt="License"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/graphs/contributors"><img src="https://img.shields.io/github/contributors/withkynam/vibecode-pro-max-kit" alt="Contributors"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/withkynam/vibecode-pro-max-kit/validate.yml" alt="CI"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.2.4-2EA043" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.2.5-2EA043" alt="Version"></a>
   <img src="https://img.shields.io/badge/agents-15-orange" alt="Agents">
   <img src="https://img.shields.io/badge/skills-33-purple" alt="Skills">
   <img src="https://img.shields.io/badge/hooks-10-blue" alt="Hooks">
@@ -138,7 +138,9 @@
 
 ## ⚡ Get Started — One Command, 30 Seconds
 
-> **Prerequisites:** Node.js ≥ 22, git, bash (macOS / Linux / WSL; on Alpine: `apk add bash`).
+> **Prerequisites:** Node.js ≥ 22, git, bash (macOS / Linux / WSL / **Git Bash**; on Alpine: `apk add bash`).
+>
+> **Windows:** the installer is a bash script — run it inside **Git Bash** (ships with [Git for Windows](https://git-scm.com/download/win)) or **WSL**, *not* PowerShell or `cmd.exe`. Both work out of the box: the installer detects Windows shells and, when symlinks aren't permitted, automatically falls back to copying (install still completes). For true symlinks (so Codex auto-reflects `vc-update` changes), [enable Developer Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development).
 
 **There is only one command, and it works for everyone.** Run it inside your project folder. It detects whether you are a new or returning user, installs safely without overwriting your files, and then *tells you the exact next thing to say.*
 
